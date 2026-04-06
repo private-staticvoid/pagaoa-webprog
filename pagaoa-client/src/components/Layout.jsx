@@ -1,6 +1,6 @@
-import { Outlet } from 'react-router-dom';
-import NavBar from './NavBar';
-import Footer from './Footer';
+import { Outlet } from "react-router-dom";
+import NavBar from "./NavBar";
+import Footer from "./Footer";
 
 const Layout = () => {
   return (
@@ -9,7 +9,9 @@ const Layout = () => {
       <NavBar />
 
       {/* Main content */}
-      <main className="flex-1 pt-20"> {/* flex-1 fills remaining space */}
+      <main className="flex-1 pt-15">
+        {" "}
+        {/* flex-1 fills remaining space */}
         <Outlet />
       </main>
 

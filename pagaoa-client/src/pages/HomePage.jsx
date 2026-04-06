@@ -1,4 +1,5 @@
 import Button from "../components/Button";
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
   return (
@@ -98,13 +99,15 @@ const HomePage = () => {
         <div className="grid gap-4 md:grid-cols-3">
           {[
             {
+              name: "dubai-chewy-cookie",
               title: "Dubai Chewy Cookie",
               desc: "Only for 170 Pesos per piece",
               img: "https://static01.nyt.com/images/2026/03/17/multimedia/EK-Dubai-Chocolate-Chewy-Cookies-1wfgm/EK-Dubai-Chocolate-Chewy-Cookies-wfgm-threeByTwoLargeAt2X.jpg?format=pjpg&quality=75&auto=webp&disable=upscale",
             },
             {
-              title: "Moist Chocolate Cake",
-              desc: "Rich and moist chocolate goodness",
+              name: "cookies-original",
+              title: "Cookies Original",
+              desc: "Fresh cookies that crumble in your mouth",
               img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
             },
             {
@@ -133,9 +136,11 @@ const HomePage = () => {
                 {card.desc}
               </p>
 
-              <Button className="mt-4 bg-[#070546] text-white hover:bg-[#e8c07d] hover:text-black">
-                View More
-              </Button>
+              <Link to={`/article/${card.name}`}>
+                <Button className="mt-4 bg-[#070546] text-white hover:bg-[#e8c07d] hover:text-black">
+                  View More
+                </Button>
+              </Link>
             </article>
           ))}
         </div>
