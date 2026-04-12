@@ -117,7 +117,7 @@ const HomePage = () => {
               key={card.title}
               className="rounded-3xl border-2 border-black bg-[#fef6e9] p-4"
             >
-              <div className="aspect-[4/3] overflow-hidden rounded-[1.25rem] border-2 border-black">
+              <div className="aspect-4/3 overflow-hidden rounded-[1.25rem] border-2 border-black">
                 <img
                   src={card.img}
                   alt={card.title}

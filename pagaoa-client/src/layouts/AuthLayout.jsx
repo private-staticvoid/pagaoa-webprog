@@ -24,7 +24,7 @@ const AuthLayout = () => {
             <img
               src="https://i.pinimg.com/736x/23/93/e8/2393e858d05c9bf4687a3fdfa710e454.jpg"
               alt="Bakery"
-              className="w-[460px] h-[340px] object-cover opacity-90"
+              className="w-155 h-100 object-cover opacity-90"
             />
           </div>
 

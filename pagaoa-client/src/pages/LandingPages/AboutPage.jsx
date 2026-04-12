@@ -13,7 +13,7 @@ const AboutPage = () => {
             <img
               src="https://www.biggerbolderbaking.com/wp-content/uploads/2021/03/Crazy-cookie-dough-thumbnail-scaled.jpg"
               alt="Bakery"
-              className="w-full h-[350px] object-cover"
+              className="w-full h-87.5 object-cover"
             />
           </div>
 
@@ -44,7 +44,6 @@ const AboutPage = () => {
               />
             </div>
 
-            {/* BUTTON */}
             <div className="mt-6">
               <Button to="/">Back Home</Button>
             </div>
