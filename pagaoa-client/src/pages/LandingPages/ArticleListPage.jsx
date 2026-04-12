@@ -1,12 +1,11 @@
 // src/pages/ArticleListPage.jsx
-import ArticleList from "../components/ArticleList";
-import articles from "../assets/articles";
-import Button from "../components/Button";
+import ArticleList from "../../components/ArticleList";
+import articles from "../../assets/articles";
+import Button from "../../components/Button";
 
 const ArticleListPage = () => {
   return (
     <div className="flex w-full flex-col gap-4">
-      {/* HERO */}
       <section className="border-y-2 border-zinc-900 bg-[#f3ede6] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
           <div className="order-2 lg:order-1">
@@ -41,7 +40,6 @@ const ArticleListPage = () => {
         </div>
       </section>
 
-      {/* ARTICLE GRID */}
       <section className="border-y-2 border-zinc-900 bg-[#070546] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#f3ede6]">

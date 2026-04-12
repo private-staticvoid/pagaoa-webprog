@@ -14,7 +14,14 @@ const navLinkClassName = ({ isActive }) =>
     isActive ? "bg-black text-white" : "text-gray-600 hover:bg-gray-200",
   ].join(" ");
 
-// Top Offer Bar (ONLY shows at top, does not affect navbar)
+const loginClassName = ({ isActive }) =>
+  [
+    "px-4 py-2 rounded-full text-sm font-semibold transition",
+    isActive
+      ? "bg-white text-black"
+      : "text-[#fef6e9] border border-[#fef6e9] hover:bg-[#fef6e9] hover:text-black",
+  ].join(" ");
+
 const TopBar = () => {
   const [show, setShow] = useState(false);
 
@@ -42,6 +49,7 @@ const NavBar = () => {
   return (
     <>
       <TopBar />
+
       <header className="fixed top-0 w-full bg-[#04022d] shadow-md z-40">
         <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
           <NavLink to="/" className="flex items-center gap-2">
@@ -55,12 +63,16 @@ const NavBar = () => {
             </span>
           </NavLink>
 
-          <nav className="flex gap-0">
+          <nav className="flex items-center gap-4">
             {links.map((link) => (
               <NavLink key={link.to} to={link.to} className={navLinkClassName}>
                 {link.label}
               </NavLink>
             ))}
+
+            <NavLink to="/auth/signin" className={loginClassName}>
+              Login
+            </NavLink>
           </nav>
         </div>
       </header>

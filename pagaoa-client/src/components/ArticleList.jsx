@@ -1,4 +1,3 @@
-// src/components/ArticleList.jsx
 import { Link } from "react-router-dom";
 import Button from "./Button";
 
@@ -31,7 +30,7 @@ const ArticleList = ({ articles }) => {
           </p>
 
           <Link to={`/articles/${article.name}`}>
-            <Button className="mt-4 bg-[#070546] text-white hover:bg-[#e8c07d] hover:text-black">
+            <Button className="mt-4 bg-[#fef6e9] text-[#070546] hover:bg-[#e8c07d] hover:text-black">
               Read More
             </Button>
           </Link>

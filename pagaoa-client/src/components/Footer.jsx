@@ -5,7 +5,6 @@ const Footer = () => {
   return (
     <footer className="bg-[#04022d] text-[#fef6e9] border-t-2 border-black">
       <div className="max-w-6xl mx-auto px-6 py-10 grid gap-8 md:grid-cols-3">
-        {/* BRAND */}
         <div>
           <div className="flex items-center gap-2">
             <img
@@ -21,7 +20,6 @@ const Footer = () => {
           </p>
         </div>
 
-        {/* LINKS */}
         <div>
           <h4 className="font-semibold mb-3">Quick Links</h4>
           <ul className="space-y-2 text-sm">
@@ -43,7 +41,6 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* CONTACT & SOCIAL */}
         <div>
           <h4 className="font-semibold mb-3">Contact & Follow Us</h4>
           <p className="text-sm text-[#fef6e9]/70">
@@ -55,7 +52,6 @@ const Footer = () => {
           </p>
 
           <div className="flex gap-4 mt-4">
-            {/* Facebook */}
             <a
               href="https://www.facebook.com/profile.php?id=61580188506991"
               target="_blank"
@@ -68,7 +64,6 @@ const Footer = () => {
               />
             </a>
 
-            {/* Instagram */}
             <a
               href="https://www.instagram.com/cremecrumbs_bakehouse"
               target="_blank"
@@ -84,7 +79,6 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* BOTTOM */}
       <div className="border-t border-[#fef6e9]/20 text-center text-xs py-4">
         © {new Date().getFullYear()} Crème & Crumbs. All rights reserved.
       </div>

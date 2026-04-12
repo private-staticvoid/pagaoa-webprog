@@ -1,13 +1,11 @@
-import Button from "../components/Button";
+import Button from "../../components/Button";
 import { Link } from "react-router-dom";
 
 const HomePage = () => {
   return (
     <div className="flex w-full flex-col bg-[#f3ede6]">
-      {/* HERO */}
       <section className="border-y-2 border-black bg-[#070546] px-6 py-10 sm:px-8 sm:py-12 lg:px-12 lg:py-16 -mt-2 mb-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-          {/* Left Side: Image */}
           <div className="flex items-center justify-center">
             <img
               src="https://www.foodandwine.com/thmb/4_UScMzHQCxZzACBITHHmT_EM3U=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Chocolate-Chunk-Halwah-Cookies-FT-RECIPE0923-1f8df755df6d468da98887aa846a2fe3.jpg"
@@ -16,7 +14,6 @@ const HomePage = () => {
             />
           </div>
 
-          {/* Right Side: Text */}
           <div>
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#fef6e9]/70">
               Bake House
@@ -41,7 +38,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-      {/* FAQ */}
+
       <section className="border-y-2 border-black bg-[#fef6e9] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 mb-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#070546]/60">
@@ -85,7 +82,7 @@ const HomePage = () => {
           ))}
         </div>
       </section>
-      {/* Menu */}
+
       <section className="border-y-2 border-black bg-[#070546] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 mb-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#fef6e9]/60">
@@ -137,7 +134,7 @@ const HomePage = () => {
               </p>
 
               <Link to={`/article/${card.name}`}>
-                <Button className="mt-4 bg-[#070546] text-white hover:bg-[#e8c07d] hover:text-black">
+                <Button className="mt-4 bg-[#fef6e9] text-[#070546] hover:bg-[#e8c07d] hover:text-black">
                   View More
                 </Button>
               </Link>
