@@ -124,7 +124,6 @@ const topCookies = [
 function UsersPage() {
   return (
     <Box sx={{ p: 3, backgroundColor: navy, minHeight: "100vh" }}>
-      {/* HEADER */}
       <Typography
         variant="h4"
         sx={{ color: cream, fontWeight: "bold", fontFamily: "serif", mb: 3 }}
@@ -150,7 +149,6 @@ function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* TOP COOKIES */}
       <Grid container spacing={3}>
         {topCookies.map((cookie, index) => (
           <Grid item xs={12} md={3} key={index}>
