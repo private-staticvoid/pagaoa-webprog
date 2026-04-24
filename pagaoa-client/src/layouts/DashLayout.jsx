@@ -30,6 +30,10 @@ import ListItemText from "@mui/material/ListItemText";
 
 const drawerWidth = 240;
 
+// 🎨 COLORS
+const PRIMARY = "#070546"; // dark blue
+const LIGHT = "#f3ede6"; // main background
+
 const dashboardNavItems = [
   {
     label: "Dashboard",
@@ -49,39 +53,38 @@ const dashboardNavItems = [
 // Drawer styles
 const openedMixin = (theme) => ({
   width: drawerWidth,
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
+  transition: theme.transitions.create("width"),
   overflowX: "hidden",
+  backgroundColor: PRIMARY,
+  color: LIGHT,
 });
 
 const closedMixin = (theme) => ({
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
+  transition: theme.transitions.create("width"),
   overflowX: "hidden",
   width: `calc(${theme.spacing(7)} + 1px)`,
+  backgroundColor: PRIMARY,
+  color: LIGHT,
 });
 
 const DrawerHeader = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  justifyContent: "flex-end",
-  padding: theme.spacing(0, 1),
+  justifyContent: "space-between",
+  padding: "0 8px",
   ...theme.mixins.toolbar,
 }));
 
 const AppBar = styled(MuiAppBar)(({ theme }) => ({
   zIndex: theme.zIndex.drawer + 1,
+  backgroundColor: PRIMARY,
+  color: LIGHT,
 }));
 
 const Drawer = styled(MuiDrawer)(({ theme, open }) => ({
   width: drawerWidth,
   flexShrink: 0,
   whiteSpace: "nowrap",
-  boxSizing: "border-box",
   ...(open && {
     ...openedMixin(theme),
     "& .MuiDrawer-paper": openedMixin(theme),
@@ -95,9 +98,12 @@ const Drawer = styled(MuiDrawer)(({ theme, open }) => ({
 // Search UI
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  borderRadius: 20,
+  backgroundColor: alpha(LIGHT, 0.15),
   marginRight: theme.spacing(2),
+  "&:hover": {
+    backgroundColor: alpha(LIGHT, 0.25),
+  },
 }));
 
 const SearchIconWrapper = styled("div")(({ theme }) => ({
@@ -106,10 +112,11 @@ const SearchIconWrapper = styled("div")(({ theme }) => ({
   height: "100%",
   display: "flex",
   alignItems: "center",
+  color: LIGHT,
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
+  color: LIGHT,
   paddingLeft: `calc(1em + ${theme.spacing(4)})`,
 }));
 
@@ -117,43 +124,38 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 const getPageTitle = (pathname) =>
   dashboardNavItems.find((item) => item.to === pathname)?.title || "Welcome";
 
-// MAIN COMPONENT
+// MAIN
 const DashLayout = () => {
   const theme = useTheme();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = getPageTitle(location.pathname);
 
-  const handleDrawerToggle = () => setOpen(true);
-  const handleDrawerClose = () => setOpen(false);
+  const toggleDrawer = () => setOpen(!open);
 
-  const handlogout = () => {
-    navigate("/");
-  };
-
-  const handleLogout = () => {
-    navigate("/");
-  };
+  const handleLogout = () => navigate("/");
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", backgroundColor: LIGHT, minHeight: "100vh" }}>
       <CssBaseline />
 
-      {/* APP BAR */}
+      {/* HEADER */}
       <AppBar position="fixed">
         <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={open ? handleDrawerClose : handleDrawerToggle}
-            edge="start"
-            sx={{ mr: 2, ...(open && { display: "none" }) }}
-          >
+          {/* KEEP TOP TOGGLE */}
+          <IconButton sx={{ color: LIGHT, mr: 2 }} onClick={toggleDrawer}>
             {open ? <MenuOpenIcon /> : <MenuIcon />}
           </IconButton>
 
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              flexGrow: 1,
+              fontFamily: "'Playfair Display', serif",
+              letterSpacing: 1,
+            }}
+          >
             {pageTitle}
           </Typography>
 
@@ -161,13 +163,21 @@ const DashLayout = () => {
             <SearchIconWrapper>
               <SearchIcon />
             </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search..."
-              inputProps={{ "aria-label": "search" }}
-            />
+            <StyledInputBase placeholder="Search..." />
           </Search>
 
-          <Button color="inherit" variant="outlined" onClick={handleLogout}>
+          <Button
+            variant="outlined"
+            onClick={handleLogout}
+            sx={{
+              color: LIGHT,
+              borderColor: LIGHT,
+              "&:hover": {
+                backgroundColor: LIGHT,
+                color: PRIMARY,
+              },
+            }}
+          >
             Logout
           </Button>
         </Toolbar>
@@ -176,16 +186,17 @@ const DashLayout = () => {
       {/* DRAWER */}
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
-            {theme.direction === "rtl" ? (
-              <ChevronRightIcon />
-            ) : (
-              <ChevronLeftIcon />
-            )}
+          {/* 👇 NEW COLLAPSE BUTTON INSIDE DRAWER */}
+          <Typography sx={{ color: LIGHT, fontSize: 14 }}>
+            {open ? "Menu" : ""}
+          </Typography>
+
+          <IconButton sx={{ color: LIGHT }} onClick={toggleDrawer}>
+            {open ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </DrawerHeader>
 
-        <Divider />
+        <Divider sx={{ borderColor: alpha(LIGHT, 0.2) }} />
 
         <List>
           {dashboardNavItems.map(({ label, to, icon: Icon }) => (
@@ -198,6 +209,16 @@ const DashLayout = () => {
                   minHeight: 48,
                   px: 2.5,
                   justifyContent: open ? "initial" : "center",
+                  color: LIGHT,
+                  mx: 1,
+                  my: 0.5,
+                  borderRadius: 2,
+                  "&.Mui-selected": {
+                    backgroundColor: alpha(LIGHT, 0.2),
+                  },
+                  "&:hover": {
+                    backgroundColor: alpha(LIGHT, 0.1),
+                  },
                 }}
               >
                 <ListItemIcon
@@ -205,6 +226,7 @@ const DashLayout = () => {
                     minWidth: 0,
                     mr: open ? 3 : "auto",
                     justifyContent: "center",
+                    color: LIGHT,
                   }}
                 >
                   <Icon />
@@ -217,9 +239,17 @@ const DashLayout = () => {
         </List>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+      {/* MAIN CONTENT */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          backgroundColor: LIGHT,
+          color: PRIMARY,
+        }}
+      >
         <DrawerHeader />
-        {/* CONTENT */}
         <Outlet />
       </Box>
     </Box>

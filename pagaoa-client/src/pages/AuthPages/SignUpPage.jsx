@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import Button from "../../components/Button";
 
 const inputClasses =
@@ -8,6 +9,56 @@ const actionButtonClassName =
   "w-full rounded-xl py-3 text-[11px] tracking-[0.2em]";
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Get existing users
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+
+    // Check if email already exists
+    const exists = users.find((u) => u.email === form.email);
+
+    if (exists) {
+      alert("Email already registered!");
+      return;
+    }
+
+    // Save new user
+    const newUser = {
+      ...form,
+      id: Date.now(),
+    };
+
+    users.push(newUser);
+    localStorage.setItem("users", JSON.stringify(users));
+
+    alert("Account created successfully!");
+
+    // reset form
+    setForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+    });
+
+    // optional redirect
+    navigate("/auth/signin");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3ede6] px-6 py-12">
       <div className="w-full max-w-2xl rounded-3xl bg-white shadow-lg border border-[#070546]/10 p-8 sm:p-10">
@@ -19,29 +70,49 @@ const SignUpPage = () => {
           Join Crème & Crumbs and enjoy fresh baked goodness delivered to you.
         </p>
 
-        <form className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label className="text-sm font-medium text-[#070546]">
                 First Name
               </label>
-              <input type="text" placeholder="John" className={inputClasses} />
+              <input
+                name="firstName"
+                value={form.firstName}
+                onChange={handleChange}
+                type="text"
+                placeholder="John"
+                className={inputClasses}
+                required
+              />
             </div>
 
             <div>
               <label className="text-sm font-medium text-[#070546]">
                 Last Name
               </label>
-              <input type="text" placeholder="Doe" className={inputClasses} />
+              <input
+                name="lastName"
+                value={form.lastName}
+                onChange={handleChange}
+                type="text"
+                placeholder="Doe"
+                className={inputClasses}
+                required
+              />
             </div>
           </div>
 
           <div>
             <label className="text-sm font-medium text-[#070546]">Email</label>
             <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
               type="email"
               placeholder="you@example.com"
               className={inputClasses}
+              required
             />
           </div>
 
@@ -50,13 +121,14 @@ const SignUpPage = () => {
               Password
             </label>
             <input
+              name="password"
+              value={form.password}
+              onChange={handleChange}
               type="password"
               placeholder="••••••••"
               className={inputClasses}
+              required
             />
-            <p className="mt-2 text-xs text-[#070546]/60">
-              Use at least 8 characters with numbers and symbols.
-            </p>
           </div>
 
           <Button

@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import Button from "../../components/Button";
 
 const inputClasses =
@@ -8,6 +9,41 @@ const actionButtonClassName =
   "w-full rounded-xl py-3 text-[11px] tracking-[0.2em]";
 
 const SignInPage = () => {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const users = JSON.parse(localStorage.getItem("users")) || [];
+
+    // find user match
+    const user = users.find(
+      (u) => u.email === form.email && u.password === form.password,
+    );
+
+    if (!user) {
+      alert("Invalid email or password");
+      return;
+    }
+
+    // save logged-in user (session)
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
+    alert("Login successful!");
+
+    // ✅ redirect to dashboard
+    navigate("/dashboard");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3ede6] px-6 py-12">
       <div className="w-full max-w-xl rounded-3xl bg-white shadow-lg border border-[#070546]/10 p-8 sm:p-10">
@@ -19,16 +55,20 @@ const SignInPage = () => {
           Sign in to continue enjoying fresh baked Crème & Crumbs treats.
         </p>
 
-        <form className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
             <label className="text-sm font-medium text-[#070546]">
               Email Address
             </label>
             <input
+              name="email"
+              value={form.email}
+              onChange={handleChange}
               type="email"
               placeholder="you@example.com"
               autoComplete="email"
               className={inputClasses}
+              required
             />
           </div>
 
@@ -37,14 +77,15 @@ const SignInPage = () => {
               Password
             </label>
             <input
+              name="password"
+              value={form.password}
+              onChange={handleChange}
               type="password"
               placeholder="••••••••"
               autoComplete="current-password"
               className={inputClasses}
+              required
             />
-            <p className="mt-2 text-xs text-[#070546]/60">
-              Use at least 8 characters with a mix of letters and numbers.
-            </p>
           </div>
 
           <div className="flex items-center justify-between text-sm">
