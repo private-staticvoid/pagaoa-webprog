@@ -30,9 +30,8 @@ import ListItemText from "@mui/material/ListItemText";
 
 const drawerWidth = 240;
 
-// 🎨 COLORS
-const PRIMARY = "#070546"; // dark blue
-const LIGHT = "#f3ede6"; // main background
+const PRIMARY = "#070546";
+const LIGHT = "#f3ede6";
 
 const dashboardNavItems = [
   {
@@ -50,7 +49,6 @@ const dashboardNavItems = [
   { label: "Users", title: "Users", to: "/dashboard/users", icon: PeopleIcon },
 ];
 
-// Drawer styles
 const openedMixin = (theme) => ({
   width: drawerWidth,
   transition: theme.transitions.create("width"),
@@ -95,7 +93,6 @@ const Drawer = styled(MuiDrawer)(({ theme, open }) => ({
   }),
 }));
 
-// Search UI
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: 20,
@@ -120,11 +117,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   paddingLeft: `calc(1em + ${theme.spacing(4)})`,
 }));
 
-// Title helper
 const getPageTitle = (pathname) =>
   dashboardNavItems.find((item) => item.to === pathname)?.title || "Welcome";
 
-// MAIN
 const DashLayout = () => {
   const theme = useTheme();
   const [open, setOpen] = useState(true);
@@ -140,10 +135,8 @@ const DashLayout = () => {
     <Box sx={{ display: "flex", backgroundColor: LIGHT, minHeight: "100vh" }}>
       <CssBaseline />
 
-      {/* HEADER */}
       <AppBar position="fixed">
         <Toolbar>
-          {/* KEEP TOP TOGGLE */}
           <IconButton sx={{ color: LIGHT, mr: 2 }} onClick={toggleDrawer}>
             {open ? <MenuOpenIcon /> : <MenuIcon />}
           </IconButton>
@@ -183,10 +176,8 @@ const DashLayout = () => {
         </Toolbar>
       </AppBar>
 
-      {/* DRAWER */}
       <Drawer variant="permanent" open={open}>
         <DrawerHeader>
-          {/* 👇 NEW COLLAPSE BUTTON INSIDE DRAWER */}
           <Typography sx={{ color: LIGHT, fontSize: 14 }}>
             {open ? "Menu" : ""}
           </Typography>
@@ -239,7 +230,6 @@ const DashLayout = () => {
         </List>
       </Drawer>
 
-      {/* MAIN CONTENT */}
       <Box
         component="main"
         sx={{

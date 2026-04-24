@@ -131,7 +131,6 @@ function UsersPage() {
         Customers Overview
       </Typography>
 
-      {/* CUSTOMER TABLE */}
       <Card sx={{ mb: 4, borderRadius: 3, backgroundColor: cream }}>
         <CardContent>
           <Typography sx={{ color: navy, fontWeight: "bold", mb: 2 }}>

@@ -10,7 +10,6 @@ import { PieChart } from "@mui/x-charts/PieChart";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-/* ICONS */
 import PeopleIcon from "@mui/icons-material/People";
 import CakeIcon from "@mui/icons-material/Cake";
 import StarIcon from "@mui/icons-material/Star";
@@ -66,7 +65,6 @@ function DashboardPage() {
 
   return (
     <Box sx={{ p: 3, backgroundColor: "#f9f6f2", minHeight: "100vh" }}>
-      {/* HEADER */}
       <Typography
         variant="h4"
         gutterBottom
@@ -75,9 +73,7 @@ function DashboardPage() {
         Dashboard
       </Typography>
 
-      {/* KPI CARDS */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 4 }}>
-        {/* TOTAL CUSTOMERS */}
         <Card sx={{ flex: 1, borderRadius: 4, boxShadow: 3 }}>
           <CardContent
             sx={{ display: "flex", justifyContent: "space-between" }}
@@ -133,7 +129,6 @@ function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* TOP PRODUCT */}
         <Card
           sx={{
             flex: 1,
@@ -177,7 +172,6 @@ function DashboardPage() {
         </Card>
       </Stack>
 
-      {/* GAUGES */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ mb: 4 }}>
         <Card sx={{ p: 2, borderRadius: 4, boxShadow: 3 }}>
           <Typography>Sales Target</Typography>
@@ -190,7 +184,6 @@ function DashboardPage() {
         </Card>
       </Stack>
 
-      {/* CHARTS */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ mb: 4 }}>
         <Card sx={{ flex: 1, p: 2, borderRadius: 4, boxShadow: 3 }}>
           <Typography
@@ -242,7 +235,6 @@ function DashboardPage() {
         </Card>
       </Stack>
 
-      {/* TABLE */}
       <Card sx={{ mb: 4, borderRadius: 4, boxShadow: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>
@@ -259,7 +251,6 @@ function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* MAP */}
       <Card sx={{ borderRadius: 4, boxShadow: 3 }}>
         <CardContent>
           <Typography variant="h6" gutterBottom>

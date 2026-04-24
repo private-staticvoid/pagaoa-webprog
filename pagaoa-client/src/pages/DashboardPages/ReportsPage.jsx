@@ -56,7 +56,6 @@ const statCard = (title, value, percent, color, Icon) => (
 function ReportsPage() {
   return (
     <Box sx={{ p: 3, backgroundColor: cream, minHeight: "100vh" }}>
-      {/* HEADER */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="h4"
@@ -82,7 +81,6 @@ function ReportsPage() {
         {statCard("Low Stock", "5 items", "-4%", "#c62828", TrendingDownIcon)}
       </Stack>
 
-      {/* MAIN CHARTS */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ mb: 4 }}>
         <Card sx={{ flex: 2, p: 2, borderRadius: 4, boxShadow: 3 }}>
           <Typography
@@ -140,7 +138,6 @@ function ReportsPage() {
         </Card>
       </Stack>
 
-      {/* SECOND ROW */}
       <Stack direction={{ xs: "column", md: "row" }} spacing={3} sx={{ mb: 4 }}>
         <Card sx={{ flex: 1, p: 2, borderRadius: 4, boxShadow: 3 }}>
           <Typography
@@ -185,7 +182,6 @@ function ReportsPage() {
             Revenue Progress
           </Typography>
 
-          {/* MINI TREND CHART */}
           <BarChart
             height={180}
             series={[
@@ -199,7 +195,6 @@ function ReportsPage() {
             ]}
           />
 
-          {/* CURRENT MONTH */}
           <Box sx={{ mt: 2 }}>
             <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 1 }}>
               April Progress (₱24,560 / ₱30,000)
@@ -217,7 +212,6 @@ function ReportsPage() {
             />
           </Box>
 
-          {/* PREVIOUS MONTHS */}
           {[
             { month: "March", value: 70 },
             { month: "February", value: 65 },
@@ -243,7 +237,6 @@ function ReportsPage() {
         </Card>
       </Stack>
 
-      {/* PRODUCT PERFORMANCE */}
       <Card sx={{ borderRadius: 4, boxShadow: 3 }}>
         <CardContent>
           <Typography
