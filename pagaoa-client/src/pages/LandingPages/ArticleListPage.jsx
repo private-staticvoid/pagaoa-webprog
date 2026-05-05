@@ -1,6 +1,6 @@
 // src/pages/ArticleListPage.jsx
 import ArticleList from "../../components/ArticleList";
-import articles from "../../assets/articles";
+import articles from "../../data/articles";
 import Button from "../../components/Button";
 
 const ArticleListPage = () => {
