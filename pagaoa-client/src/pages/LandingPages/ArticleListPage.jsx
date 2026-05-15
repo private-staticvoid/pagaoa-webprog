@@ -1,11 +1,40 @@
 // src/pages/ArticleListPage.jsx
+import { useState, useEffect } from "react";
 import ArticleList from "../../components/ArticleList";
-import articles from "../../data/articles";
 import Button from "../../components/Button";
+import {
+  fetchArticles,
+  mapArticleFromApi,
+} from "../../services/articleService";
 
 const ArticleListPage = () => {
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data } = await fetchArticles();
+        // Backend returns { articles: [...] }; handle both shapes defensively
+        const raw = Array.isArray(data) ? data : (data.articles ?? []);
+        // Only expose published articles on the public page
+        const published = raw
+          .filter((a) => a.status === "published")
+          .map(mapArticleFromApi);
+        setArticles(published);
+      } catch {
+        setError("Could not load articles. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
   return (
     <div className="flex w-full flex-col gap-4">
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="border-y-2 border-zinc-900 bg-[#f3ede6] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
           <div className="order-2 lg:order-1">
@@ -40,6 +69,7 @@ const ArticleListPage = () => {
         </div>
       </section>
 
+      {/* ── Article grid ─────────────────────────────────────────────────── */}
       <section className="border-y-2 border-zinc-900 bg-[#070546] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#f3ede6]">
@@ -50,7 +80,21 @@ const ArticleListPage = () => {
           </h2>
         </div>
 
-        <ArticleList articles={articles} />
+        {loading && (
+          <p className="text-[#f3ede6]/70 text-sm">Loading articles…</p>
+        )}
+
+        {error && <p className="text-red-400 text-sm">{error}</p>}
+
+        {!loading && !error && articles.length === 0 && (
+          <p className="text-[#f3ede6]/70 text-sm">
+            No articles published yet. Check back soon!
+          </p>
+        )}
+
+        {!loading && !error && articles.length > 0 && (
+          <ArticleList articles={articles} />
+        )}
       </section>
     </div>
   );

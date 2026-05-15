@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Button from "../../components/Button";
+import { loginUser } from "../../services/UserService";
 
 const inputClasses =
   "mt-2 w-full rounded-xl border border-[#070546]/20 bg-[#f3ede6] px-4 py-3 text-sm text-[#070546] outline-none transition placeholder:text-[#070546]/40 focus:border-[#070546] focus:bg-white";
@@ -11,37 +12,60 @@ const actionButtonClassName =
 const SignInPage = () => {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (error) setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      const { data } = await loginUser({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
 
-    // find user match
-    const user = users.find(
-      (u) => u.email === form.email && u.password === form.password,
-    );
+      const user = data.user ?? data; // support { user, token } or flat user
 
-    if (!user) {
-      alert("Invalid email or password");
-      return;
+      // ── Role gate: viewers cannot log in ──────────────────────────────────
+      if (user.type === "viewer") {
+        setError(
+          "Viewer accounts do not have access to this application. Please contact an administrator.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Persist session
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      // Role-based redirect
+      if (user.type === "admin") {
+        navigate("/dashboard");
+      } else {
+        // editors land on dashboard but cannot reach /users
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      const msg =
+        err?.response?.status === 401 || err?.response?.status === 400
+          ? "Invalid email or password."
+          : err?.response?.data?.message ||
+            "Something went wrong. Please try again.";
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
-
-    // save logged-in user (session)
-    localStorage.setItem("currentUser", JSON.stringify(user));
-
-    alert("Login successful!");
-
-    // ✅ redirect to dashboard
-    navigate("/dashboard");
   };
 
   return (
@@ -52,8 +76,15 @@ const SignInPage = () => {
         </h1>
 
         <p className="mt-3 text-sm leading-6 text-[#070546]/70">
-          Sign in to continue enjoying fresh baked Crème & Crumbs treats.
+          Sign in to continue enjoying fresh baked Crème &amp; Crumbs treats.
         </p>
+
+        {/* ── Error Banner ──────────────────────────────────────────────────── */}
+        {error && (
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
@@ -108,9 +139,10 @@ const SignInPage = () => {
           <Button
             type="submit"
             variant="primary"
-            className={`${actionButtonClassName} bg-[#070546] text-[#f3ede6] hover:opacity-90`}
+            disabled={loading}
+            className={`${actionButtonClassName} bg-[#070546] text-[#f3ede6] hover:opacity-90 disabled:opacity-50`}
           >
-            Log In
+            {loading ? "Signing in…" : "Log In"}
           </Button>
 
           <div className="grid gap-3 pt-2 sm:grid-cols-2">

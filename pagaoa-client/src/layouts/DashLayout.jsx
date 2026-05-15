@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 
 import { styled, useTheme, alpha } from "@mui/material/styles";
@@ -22,6 +22,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PeopleIcon from "@mui/icons-material/People";
 import AssessmentIcon from "@mui/icons-material/Assessment";
+import InsightsIcon from "@mui/icons-material/Insights";
 
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -47,6 +48,12 @@ const dashboardNavItems = [
     icon: AssessmentIcon,
   },
   { label: "Users", title: "Users", to: "/dashboard/users", icon: PeopleIcon },
+  {
+    label: "articles",
+    title: "Articles",
+    to: "/dashboard/articles",
+    icon: InsightsIcon,
+  },
 ];
 
 const openedMixin = (theme) => ({
@@ -126,6 +133,10 @@ const DashLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = getPageTitle(location.pathname);
+
+  useEffect(() => {
+    document.title = pageTitle;
+  }, [pageTitle]);
 
   const toggleDrawer = () => setOpen(!open);
 

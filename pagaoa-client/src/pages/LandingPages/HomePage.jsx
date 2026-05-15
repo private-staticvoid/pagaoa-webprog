@@ -108,7 +108,8 @@ const HomePage = () => {
               img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
             },
             {
-              title: "Cookies Original",
+              name: "cookies-original2",
+              title: "Cookies Original2",
               desc: "Fresh cookies that crumble in your mouth",
               img: "https://lemonsandzest.com/wp-content/uploads/2020/02/Small-Batch-Chocolate-Chip-Cookies-Recipe-3.10.jpg",
             },

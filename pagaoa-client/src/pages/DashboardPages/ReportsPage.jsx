@@ -261,9 +261,6 @@ function ReportsPage() {
           </Card>
         </Stack>
 
-        {/* KEEPING EVERYTHING BELOW SAME */}
-        {/* (No changes, just preserved exactly as you wrote) */}
-
         <Stack
           direction={{ xs: "column", md: "row" }}
           spacing={3}

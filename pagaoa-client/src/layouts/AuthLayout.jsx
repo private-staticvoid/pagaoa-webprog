@@ -1,9 +1,26 @@
-import { Outlet } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 import logo from "../assets/images/logo.png";
 
 const AuthLayout = () => {
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  useEffect(() => {
+    if (pathname === "/" || pathname === "") {
+      document.title = "Crème & Crumbs";
+    } else if (pathname.includes("signin")) {
+      document.title = "Sign In | Crème & Crumbs";
+    } else if (pathname.includes("signup")) {
+      document.title = "Sign Up | Crème & Crumbs";
+    } else {
+      document.title = "Crème & Crumbs";
+    }
+  }, [pathname]);
+
   return (
     <section className="min-h-screen flex bg-[#f3ede6]">
+      {/* Left side branding */}
       <div className="hidden lg:flex w-1/2 items-center justify-center bg-[#070546] p-12">
         <div className="text-center text-[#f3ede6] max-w-md">
           <div className="flex justify-center mb-4">
@@ -34,6 +51,7 @@ const AuthLayout = () => {
         </div>
       </div>
 
+      {/* Right side auth form */}
       <main className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <Outlet />
