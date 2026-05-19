@@ -32,9 +32,8 @@ const SignInPage = () => {
         password: form.password,
       });
 
-      const user = data.user ?? data; // support { user, token } or flat user
+      const user = data.user ?? data;
 
-      // ── Role gate: viewers cannot log in ──────────────────────────────────
       if (user.type === "viewer") {
         setError(
           "Viewer accounts do not have access to this application. Please contact an administrator.",
@@ -43,17 +42,14 @@ const SignInPage = () => {
         return;
       }
 
-      // Persist session
       localStorage.setItem("currentUser", JSON.stringify(user));
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
 
-      // Role-based redirect
       if (user.type === "admin") {
         navigate("/dashboard");
       } else {
-        // editors land on dashboard but cannot reach /users
         navigate("/dashboard");
       }
     } catch (err) {
@@ -79,7 +75,6 @@ const SignInPage = () => {
           Sign in to continue enjoying fresh baked Crème &amp; Crumbs treats.
         </p>
 
-        {/* ── Error Banner ──────────────────────────────────────────────────── */}
         {error && (
           <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}

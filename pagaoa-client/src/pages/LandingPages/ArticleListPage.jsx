@@ -16,7 +16,6 @@ const ArticleListPage = () => {
       try {
         const { data } = await fetchArticles();
         const raw = Array.isArray(data) ? data : (data.articles ?? []);
-        // Schema uses isActive (bool) — only show active articles publicly
         const active = raw
           .filter((a) => a.isActive !== false)
           .map(mapArticleFromApi);

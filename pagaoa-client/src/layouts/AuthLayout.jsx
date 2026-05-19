@@ -20,7 +20,6 @@ const AuthLayout = () => {
 
   return (
     <section className="min-h-screen flex bg-[#f3ede6]">
-      {/* Left side branding */}
       <div className="hidden lg:flex w-1/2 items-center justify-center bg-[#070546] p-12">
         <div className="text-center text-[#f3ede6] max-w-md">
           <div className="flex justify-center mb-4">
@@ -51,7 +50,6 @@ const AuthLayout = () => {
         </div>
       </div>
 
-      {/* Right side auth form */}
       <main className="flex w-full lg:w-1/2 items-center justify-center px-6 py-12">
         <div className="w-full max-w-md">
           <Outlet />

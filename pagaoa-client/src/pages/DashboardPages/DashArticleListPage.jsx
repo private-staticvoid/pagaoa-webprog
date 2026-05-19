@@ -25,20 +25,17 @@ import {
   deleteArticle,
 } from "../../services/articleService";
 
-// ─── Blank form matches Article schema exactly ────────────────────────────────
 const BLANK_FORM = {
-  name: "", // unique slug  e.g. "chocolate-chunk-cookies"
-  title: "", // display title
-  content: "", // single string in the form; sent as ["..."] to the API
-  imageUrl: "", // required image URL
+  name: "",
+  title: "",
+  content: "",
+  imageUrl: "",
 };
 
-// ─── Component ────────────────────────────────────────────────────────────────
 const DashArticleListPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
   const currentUser = (() => {
     try {
       return JSON.parse(localStorage.getItem("currentUser")) || null;
@@ -51,7 +48,6 @@ const DashArticleListPage = () => {
   const isEditor = currentUser?.type === "editor";
   const canEdit = isAdmin || isEditor;
 
-  // ── State ─────────────────────────────────────────────────────────────────
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
@@ -65,9 +61,8 @@ const DashArticleListPage = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState(""); // "active" | "inactive" | ""
+  const [filterStatus, setFilterStatus] = useState("");
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
   const loadArticles = useCallback(async () => {
     setLoading(true);
     setApiError("");
@@ -78,7 +73,7 @@ const DashArticleListPage = () => {
         raw.map((a) => ({
           ...a,
           id: a._id ?? a.id,
-          // content arrives as string[] from DB — join for display/editing
+
           content: Array.isArray(a.content)
             ? a.content.join("\n")
             : (a.content ?? ""),
@@ -95,7 +90,6 @@ const DashArticleListPage = () => {
     loadArticles();
   }, [loadArticles]);
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
   const showToast = (message, severity = "success") =>
     setToast({ open: true, message, severity });
 
@@ -127,7 +121,6 @@ const DashArticleListPage = () => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const errs = {};
     if (!form.name.trim()) errs.name = "Name (slug) is required.";
@@ -139,7 +132,6 @@ const DashArticleListPage = () => {
     return errs;
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     const nextErrors = validate();
@@ -148,7 +140,6 @@ const DashArticleListPage = () => {
       return;
     }
 
-    // content is stored as string[] in MongoDB
     const payload = {
       name: form.name.trim().toLowerCase(),
       title: form.title.trim(),
@@ -200,7 +191,6 @@ const DashArticleListPage = () => {
     }
   };
 
-  // ── Toggle isActive (archive / restore) — admin only ─────────────────────
   const toggleActive = async (article) => {
     if (!isAdmin) return;
     const updated = { isActive: !article.isActive };
@@ -215,7 +205,6 @@ const DashArticleListPage = () => {
     }
   };
 
-  // ── Delete — admin only ───────────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (!isAdmin) return;
     if (!window.confirm("Delete this article permanently?")) return;
@@ -228,7 +217,6 @@ const DashArticleListPage = () => {
     }
   };
 
-  // ── Filter ────────────────────────────────────────────────────────────────
   const filteredArticles = articles.filter((a) => {
     const q = search.toLowerCase();
     const matchesSearch =
@@ -242,7 +230,6 @@ const DashArticleListPage = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // ── Field helper ──────────────────────────────────────────────────────────
   const fieldProps = (name, label, extra = {}) => ({
     name,
     label,
@@ -254,7 +241,6 @@ const DashArticleListPage = () => {
     ...extra,
   });
 
-  // ── Columns ───────────────────────────────────────────────────────────────
   const columns = [
     { field: "name", headerName: "Slug", minWidth: 200, flex: 1 },
     { field: "title", headerName: "Title", minWidth: 220, flex: 1.5 },
@@ -313,10 +299,8 @@ const DashArticleListPage = () => {
     },
   ];
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
-      {/* Toolbar */}
       <Box
         sx={{
           mb: 3,
@@ -360,7 +344,6 @@ const DashArticleListPage = () => {
         </Alert>
       )}
 
-      {/* Table */}
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, overflow: "hidden" }}>
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
@@ -403,9 +386,8 @@ const DashArticleListPage = () => {
           <DialogTitle>{modal.id ? "Edit Article" : "New Article"}</DialogTitle>
           <DialogContent dividers sx={{ px: { xs: 2, sm: 3 } }}>
             <Stack spacing={2} sx={{ pt: 1 }}>
-              {/* Slug */}
               <TextField
-                {...fieldProps("name", "Slug (unique name)", {
+                {...fieldProps("name", "Unique Name", {
                   placeholder: "e.g. chocolate-chunk-cookies",
                   helperText:
                     errors.name ||
@@ -422,8 +404,6 @@ const DashArticleListPage = () => {
                   placeholder: "https://example.com/image.jpg",
                 })}
               />
-
-              {/* Content — each line becomes one array entry in MongoDB */}
               <TextField
                 {...fieldProps("content", "Content", {
                   multiline: true,
@@ -453,7 +433,6 @@ const DashArticleListPage = () => {
         </Box>
       </Dialog>
 
-      {/* Toast */}
       <Snackbar
         open={toast.open}
         autoHideDuration={3500}

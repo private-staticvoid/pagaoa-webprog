@@ -114,7 +114,6 @@ const SignUpPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f3ede6] px-4 py-4">
       <div className="w-full max-w-2xl rounded-2xl bg-white shadow-lg border border-[#070546]/10 px-8 py-6">
-        {/* Header */}
         <div className="mb-4">
           <h1 className="text-2xl font-serif font-bold text-[#070546]">
             Create Your Account
@@ -124,7 +123,6 @@ const SignUpPage = () => {
           </p>
         </div>
 
-        {/* API Error */}
         {apiError && (
           <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {apiError}
@@ -132,7 +130,6 @@ const SignUpPage = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Row 1 — Name */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>First Name</label>
@@ -160,7 +157,6 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          {/* Row 2 — Age, Gender, Contact */}
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={labelCls}>Age</label>
@@ -205,7 +201,6 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          {/* Row 3 — Email, Username */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Email</label>
@@ -233,7 +228,6 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          {/* Row 4 — Role, Password */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Account Role</label>
@@ -267,7 +261,6 @@ const SignUpPage = () => {
             </div>
           </div>
 
-          {/* Row 5 — Address */}
           <div>
             <label className={labelCls}>Address</label>
             <textarea
@@ -281,7 +274,6 @@ const SignUpPage = () => {
             {fe("address")}
           </div>
 
-          {/* Submit */}
           <Button
             type="submit"
             variant="primary"
@@ -291,7 +283,6 @@ const SignUpPage = () => {
             {loading ? "Creating Account…" : "Create Account"}
           </Button>
 
-          {/* OAuth */}
           <div className="grid grid-cols-2 gap-3">
             <Button
               type="button"

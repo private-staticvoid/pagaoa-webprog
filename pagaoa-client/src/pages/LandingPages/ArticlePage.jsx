@@ -63,7 +63,6 @@ const ArticlePage = () => {
           {article.title}
         </h1>
 
-        {/* Hero image — schema field is imageUrl */}
         {article.imageUrl && (
           <div className="flex justify-center my-6">
             <div className="w-full overflow-hidden rounded-[1.25rem]">
@@ -76,7 +75,6 @@ const ArticlePage = () => {
           </div>
         )}
 
-        {/* Content — each array entry rendered as its own paragraph */}
         <div className="text-[#070546]/90 text-base leading-7 space-y-4">
           {paragraphs.map((para, i) => (
             <p key={i}>{para}</p>

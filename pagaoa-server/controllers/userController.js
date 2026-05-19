@@ -12,7 +12,7 @@ const getUsers = async (req, res) => {
 };
 const createUser = async (req, res) => {
   try {
-    const requester = req.user; // from JWT middleware
+    const requester = req.user;
 
     if (!req.body.password) {
       return res.status(400).json({ message: "Password is required" });
