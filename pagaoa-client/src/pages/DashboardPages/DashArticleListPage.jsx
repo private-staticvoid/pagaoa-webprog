@@ -14,57 +14,31 @@ import {
   Snackbar,
   Stack,
   TextField,
-  Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { DataGrid } from "@mui/x-data-grid";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { DataGrid } from "@mui/x-data-grid";
 import {
   fetchArticles,
   createArticle,
   updateArticle,
   deleteArticle,
-  mapArticleFromApi,
 } from "../../services/articleService";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STATUSES = ["draft", "published", "archived"];
-const CATEGORIES = [
-  "Pastries",
-  "Breads",
-  "Cakes",
-  "Beverages",
-  "Seasonal",
-  "Behind the Scenes",
-  "News",
-  "Other",
-];
-
+// ─── Blank form matches Article schema exactly ────────────────────────────────
 const BLANK_FORM = {
-  title: "",
-  category: "",
-  summary: "",
-  content: "",
-  status: "draft",
-  thumbnailUrl: "",
-};
-
-const labelize = (v) => (v ? `${v.charAt(0).toUpperCase()}${v.slice(1)}` : "");
-
-const statusColor = (status) => {
-  if (status === "published") return "success";
-  if (status === "archived") return "default";
-  return "warning"; // draft
+  name: "", // unique slug  e.g. "chocolate-chunk-cookies"
+  title: "", // display title
+  content: "", // single string in the form; sent as ["..."] to the API
+  imageUrl: "", // required image URL
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
-
 const DashArticleListPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
+  // ── Auth ──────────────────────────────────────────────────────────────────
   const currentUser = (() => {
     try {
       return JSON.parse(localStorage.getItem("currentUser")) || null;
@@ -86,30 +60,32 @@ const DashArticleListPage = () => {
     message: "",
     severity: "success",
   });
-
   const [modal, setModal] = useState({ open: false, id: null });
   const [form, setForm] = useState(BLANK_FORM);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
-
   const [search, setSearch] = useState("");
-  const [filterCategory, setFilterCategory] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
+  const [filterStatus, setFilterStatus] = useState(""); // "active" | "inactive" | ""
 
-  // ── Data fetch ────────────────────────────────────────────────────────────
+  // ── Fetch ─────────────────────────────────────────────────────────────────
   const loadArticles = useCallback(async () => {
     setLoading(true);
     setApiError("");
     try {
       const { data } = await fetchArticles();
-      // Backend returns { articles: [...] }
       const raw = Array.isArray(data) ? data : (data.articles ?? []);
-      setArticles(raw.map(mapArticleFromApi));
-    } catch (err) {
-      setApiError(
-        err?.response?.data?.message ||
-          "Failed to load articles. Check your connection.",
+      setArticles(
+        raw.map((a) => ({
+          ...a,
+          id: a._id ?? a.id,
+          // content arrives as string[] from DB — join for display/editing
+          content: Array.isArray(a.content)
+            ? a.content.join("\n")
+            : (a.content ?? ""),
+        })),
       );
+    } catch (err) {
+      setApiError(err?.response?.data?.message || "Failed to load articles.");
     } finally {
       setLoading(false);
     }
@@ -128,12 +104,12 @@ const DashArticleListPage = () => {
     setForm(
       article
         ? {
+            name: article.name ?? "",
             title: article.title ?? "",
-            category: article.category ?? "",
-            summary: article.summary ?? "",
-            content: article.content ?? "",
-            status: article.status ?? "draft",
-            thumbnailUrl: article.thumbnailUrl ?? "",
+            content: Array.isArray(article.content)
+              ? article.content.join("\n")
+              : (article.content ?? ""),
+            imageUrl: article.imageUrl ?? "",
           }
         : { ...BLANK_FORM },
     );
@@ -154,11 +130,12 @@ const DashArticleListPage = () => {
   // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const errs = {};
+    if (!form.name.trim()) errs.name = "Name (slug) is required.";
+    else if (/\s/.test(form.name.trim()))
+      errs.name = "No spaces — use hyphens (e.g. my-article).";
     if (!form.title.trim()) errs.title = "Title is required.";
-    if (!form.category) errs.category = "Category is required.";
-    if (!form.summary.trim()) errs.summary = "Summary is required.";
     if (!form.content.trim()) errs.content = "Content is required.";
-    if (!form.status) errs.status = "Status is required.";
+    if (!form.imageUrl.trim()) errs.imageUrl = "Image URL is required.";
     return errs;
   };
 
@@ -171,17 +148,12 @@ const DashArticleListPage = () => {
       return;
     }
 
+    // content is stored as string[] in MongoDB
     const payload = {
+      name: form.name.trim().toLowerCase(),
       title: form.title.trim(),
-      category: form.category,
-      summary: form.summary.trim(),
-      content: form.content.trim(),
-      status: form.status,
-      thumbnailUrl: form.thumbnailUrl.trim(),
-      author: currentUser
-        ? `${currentUser.firstName} ${currentUser.lastName}`.trim()
-        : "Unknown",
-      authorId: currentUser?._id ?? currentUser?.id,
+      content: form.content.trim().split("\n").filter(Boolean),
+      imageUrl: form.imageUrl.trim(),
     };
 
     setSubmitting(true);
@@ -190,13 +162,31 @@ const DashArticleListPage = () => {
         const { data } = await updateArticle(modal.id, payload);
         setArticles((prev) =>
           prev.map((a) =>
-            a.id === modal.id ? mapArticleFromApi({ ...a, ...data }) : a,
+            a.id === modal.id
+              ? {
+                  ...a,
+                  ...data,
+                  id: modal.id,
+                  content: Array.isArray(data.content)
+                    ? data.content.join("\n")
+                    : data.content,
+                }
+              : a,
           ),
         );
         showToast("Article updated successfully.");
       } else {
         const { data } = await createArticle(payload);
-        setArticles((prev) => [...prev, mapArticleFromApi(data)]);
+        setArticles((prev) => [
+          ...prev,
+          {
+            ...data,
+            id: data._id ?? data.id,
+            content: Array.isArray(data.content)
+              ? data.content.join("\n")
+              : data.content,
+          },
+        ]);
         showToast("Article created successfully.");
       }
       closeModal();
@@ -210,26 +200,22 @@ const DashArticleListPage = () => {
     }
   };
 
-  // ── Archive / restore (admin only) ────────────────────────────────────────
-  const toggleArchive = async (article) => {
+  // ── Toggle isActive (archive / restore) — admin only ─────────────────────
+  const toggleActive = async (article) => {
     if (!isAdmin) return;
-    const newStatus = article.status === "archived" ? "draft" : "archived";
+    const updated = { isActive: !article.isActive };
     try {
-      await updateArticle(article.id, { status: newStatus });
+      await updateArticle(article.id, updated);
       setArticles((prev) =>
-        prev.map((a) =>
-          a.id === article.id ? { ...a, status: newStatus } : a,
-        ),
+        prev.map((a) => (a.id === article.id ? { ...a, ...updated } : a)),
       );
-      showToast(
-        `Article ${newStatus === "archived" ? "archived" : "restored to draft"}.`,
-      );
+      showToast(`Article ${updated.isActive ? "restored" : "archived"}.`);
     } catch {
-      showToast("Failed to update article status.", "error");
+      showToast("Failed to update article.", "error");
     }
   };
 
-  // ── Delete (admin only) ───────────────────────────────────────────────────
+  // ── Delete — admin only ───────────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (!isAdmin) return;
     if (!window.confirm("Delete this article permanently?")) return;
@@ -242,16 +228,18 @@ const DashArticleListPage = () => {
     }
   };
 
-  // ── Filtered rows ─────────────────────────────────────────────────────────
+  // ── Filter ────────────────────────────────────────────────────────────────
   const filteredArticles = articles.filter((a) => {
     const q = search.toLowerCase();
     const matchesSearch =
-      a.title?.toLowerCase().includes(q) ||
-      a.author?.toLowerCase().includes(q) ||
-      a.summary?.toLowerCase().includes(q);
-    const matchesCat = filterCategory ? a.category === filterCategory : true;
-    const matchesStatus = filterStatus ? a.status === filterStatus : true;
-    return matchesSearch && matchesCat && matchesStatus;
+      a.title?.toLowerCase().includes(q) || a.name?.toLowerCase().includes(q);
+    const matchesStatus =
+      filterStatus === "active"
+        ? a.isActive
+        : filterStatus === "inactive"
+          ? !a.isActive
+          : true;
+    return matchesSearch && matchesStatus;
   });
 
   // ── Field helper ──────────────────────────────────────────────────────────
@@ -268,46 +256,25 @@ const DashArticleListPage = () => {
 
   // ── Columns ───────────────────────────────────────────────────────────────
   const columns = [
+    { field: "name", headerName: "Slug", minWidth: 200, flex: 1 },
+    { field: "title", headerName: "Title", minWidth: 220, flex: 1.5 },
     {
-      field: "title",
-      headerName: "Title",
-      flex: 1.5,
-      minWidth: 200,
-    },
-    {
-      field: "category",
-      headerName: "Category",
-      minWidth: 140,
-    },
-    {
-      field: "author",
-      headerName: "Author",
-      minWidth: 160,
-    },
-    {
-      field: "status",
+      field: "isActive",
       headerName: "Status",
-      minWidth: 120,
+      minWidth: 110,
       renderCell: ({ row }) => (
         <Chip
           size="small"
-          label={labelize(row.status)}
-          color={statusColor(row.status)}
-          variant={row.status === "archived" ? "outlined" : "filled"}
+          label={row.isActive ? "Active" : "Archived"}
+          color={row.isActive ? "success" : "default"}
+          variant={row.isActive ? "filled" : "outlined"}
         />
       ),
     },
     {
-      field: "createdAt",
-      headerName: "Created",
-      minWidth: 130,
-      valueGetter: (_, row) =>
-        row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—",
-    },
-    {
       field: "actions",
       headerName: "Actions",
-      minWidth: isAdmin ? 260 : 100,
+      minWidth: isAdmin ? 240 : 90,
       sortable: false,
       filterable: false,
       renderCell: ({ row }) => (
@@ -326,10 +293,10 @@ const DashArticleListPage = () => {
               <Button
                 size="small"
                 variant="contained"
-                color={row.status === "archived" ? "success" : "warning"}
-                onClick={() => toggleArchive(row)}
+                color={row.isActive ? "warning" : "success"}
+                onClick={() => toggleActive(row)}
               >
-                {row.status === "archived" ? "Restore" : "Archive"}
+                {row.isActive ? "Archive" : "Restore"}
               </Button>
               <Button
                 size="small"
@@ -349,7 +316,7 @@ const DashArticleListPage = () => {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
-      {/* ── Toolbar ──────────────────────────────────────────────────────── */}
+      {/* Toolbar */}
       <Box
         sx={{
           mb: 3,
@@ -360,25 +327,11 @@ const DashArticleListPage = () => {
         }}
       >
         <TextField
-          placeholder="Search articles…"
+          placeholder="Search by title or slug…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           sx={{ flex: 1, minWidth: 180 }}
         />
-        <TextField
-          select
-          label="Category"
-          value={filterCategory}
-          onChange={(e) => setFilterCategory(e.target.value)}
-          sx={{ minWidth: 150 }}
-        >
-          <MenuItem value="">All</MenuItem>
-          {CATEGORIES.map((c) => (
-            <MenuItem key={c} value={c}>
-              {c}
-            </MenuItem>
-          ))}
-        </TextField>
         <TextField
           select
           label="Status"
@@ -387,11 +340,8 @@ const DashArticleListPage = () => {
           sx={{ minWidth: 130 }}
         >
           <MenuItem value="">All</MenuItem>
-          {STATUSES.map((s) => (
-            <MenuItem key={s} value={s}>
-              {labelize(s)}
-            </MenuItem>
-          ))}
+          <MenuItem value="active">Active</MenuItem>
+          <MenuItem value="inactive">Archived</MenuItem>
         </TextField>
         {canEdit && (
           <Button
@@ -410,8 +360,8 @@ const DashArticleListPage = () => {
         </Alert>
       )}
 
-      {/* ── Table ────────────────────────────────────────────────────────── */}
-      <Paper sx={{ p: { xs: 1.5, sm: 2 }, minWidth: 0, overflow: "hidden" }}>
+      {/* Table */}
+      <Paper sx={{ p: { xs: 1.5, sm: 2 }, overflow: "hidden" }}>
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
             <CircularProgress />
@@ -436,13 +386,12 @@ const DashArticleListPage = () => {
           </Box>
         ) : (
           <Alert severity="info">
-            No articles found. Adjust your search or filters, or create your
-            first article.
+            No articles found. Adjust your search or create your first article.
           </Alert>
         )}
       </Paper>
 
-      {/* ── Add / Edit Modal ──────────────────────────────────────────────── */}
+      {/* Add / Edit Modal */}
       <Dialog
         open={modal.open}
         onClose={closeModal}
@@ -454,54 +403,36 @@ const DashArticleListPage = () => {
           <DialogTitle>{modal.id ? "Edit Article" : "New Article"}</DialogTitle>
           <DialogContent dividers sx={{ px: { xs: 2, sm: 3 } }}>
             <Stack spacing={2} sx={{ pt: 1 }}>
-              <TextField {...fieldProps("title", "Title")} />
-
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField
-                  {...fieldProps("category", "Category", { select: true })}
-                >
-                  {CATEGORIES.map((c) => (
-                    <MenuItem key={c} value={c}>
-                      {c}
-                    </MenuItem>
-                  ))}
-                </TextField>
-
-                <TextField
-                  {...fieldProps("status", "Status", { select: true })}
-                >
-                  {STATUSES.map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {labelize(s)}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Stack>
-
+              {/* Slug */}
               <TextField
-                {...fieldProps("summary", "Summary", {
-                  multiline: true,
-                  rows: 2,
-                  placeholder: "Brief description shown on the listing page…",
+                {...fieldProps("name", "Slug (unique name)", {
+                  placeholder: "e.g. chocolate-chunk-cookies",
+                  helperText:
+                    errors.name ||
+                    "Lowercase, hyphens only. Used in the page URL.",
                 })}
               />
 
+              {/* Title */}
+              <TextField {...fieldProps("title", "Title")} />
+
+              {/* Image URL */}
+              <TextField
+                {...fieldProps("imageUrl", "Image URL", {
+                  placeholder: "https://example.com/image.jpg",
+                })}
+              />
+
+              {/* Content — each line becomes one array entry in MongoDB */}
               <TextField
                 {...fieldProps("content", "Content", {
                   multiline: true,
                   rows: 8,
-                  placeholder: "Full article body…",
-                })}
-              />
-
-              <TextField
-                {...fieldProps("thumbnailUrl", "Thumbnail URL (optional)", {
-                  placeholder: "https://example.com/image.jpg",
+                  placeholder: "Article body. Each paragraph on its own line.",
                 })}
               />
             </Stack>
           </DialogContent>
-
           <DialogActions sx={{ px: 3, py: 2 }}>
             <Button onClick={closeModal} disabled={submitting}>
               Cancel
@@ -516,13 +447,13 @@ const DashArticleListPage = () => {
                 ) : null
               }
             >
-              {modal.id ? "Update Article" : "Publish Article"}
+              {modal.id ? "Update Article" : "Save Article"}
             </Button>
           </DialogActions>
         </Box>
       </Dialog>
 
-      {/* ── Toast ────────────────────────────────────────────────────────── */}
+      {/* Toast */}
       <Snackbar
         open={toast.open}
         autoHideDuration={3500}

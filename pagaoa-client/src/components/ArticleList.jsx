@@ -11,16 +11,15 @@ const ArticleList = ({ articles }) => {
         >
           <div className="flex aspect-4/3 items-center justify-center rounded-[1.25rem] overflow-hidden">
             <img
-              src={article.img}
+              src={article.imageUrl}
               alt={article.title}
               className="w-full h-full object-cover"
             />
           </div>
 
           <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#070546]">
-            Article {String(article.id).padStart(2, "0")}
+            Cookie
           </p>
-
           <h3 className="mt-2 text-lg font-semibold text-[#070546]">
             {article.title}
           </h3>

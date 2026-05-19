@@ -1,25 +1,19 @@
-import constants from "../constant";
 import axios from "axios";
 
+const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
 const API = axios.create({
-  baseURL: `${constants.HOST}/article`,
+  baseURL: `${BASE_URL}/api/article`,
 });
 
 export const mapArticleFromApi = (a) => ({
   ...a,
   id: a._id ?? a.id,
-
-  img: a.thumbnailUrl || "https://placehold.co/600x400?text=No+Image",
-
-  desc: a.summary ?? "",
-  name:
-    a.slug ??
-    a.title
-      ?.toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "") ??
-    a._id ??
-    a.id,
+  name: a.name ?? "",
+  title: a.title ?? "",
+  imageUrl: a.imageUrl ?? "",
+  isActive: a.isActive ?? true,
+  content: Array.isArray(a.content) ? a.content : [a.content ?? ""],
 });
 
 export const fetchArticles = () => API.get("/");

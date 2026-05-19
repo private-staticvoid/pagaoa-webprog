@@ -1,4 +1,3 @@
-// src/pages/ArticlePage.jsx
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Button from "../../components/Button";
@@ -19,13 +18,10 @@ const ArticlePage = () => {
         const { data } = await fetchArticles();
         const raw = Array.isArray(data) ? data : (data.articles ?? []);
         const mapped = raw.map(mapArticleFromApi);
-        // Match by the `name` slug generated in mapArticleFromApi
+        // Match by the `name` slug stored in MongoDB
         const found = mapped.find((a) => a.name === name);
-        if (found) {
-          setArticle(found);
-        } else {
-          setNotFound(true);
-        }
+        if (found) setArticle(found);
+        else setNotFound(true);
       } catch {
         setNotFound(true);
       } finally {
@@ -52,45 +48,39 @@ const ArticlePage = () => {
     );
   }
 
+  const paragraphs = Array.isArray(article.content)
+    ? article.content
+    : [article.content ?? ""];
+
   return (
     <div className="flex w-full flex-col gap-6 p-6">
-      <section className="max-w-3xl mx-auto">
+      <section className="max-w-3xl mx-auto w-full">
         <Button to="/articles" className="mb-4">
           ← Back to Articles
         </Button>
 
-        <h1 className="text-3xl font-bold text-[#070546]">{article.title}</h1>
+        <h1 className="mt-4 text-3xl font-bold text-[#070546]">
+          {article.title}
+        </h1>
 
-        {article.category && (
-          <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#070546]/60">
-            {article.category}
-          </p>
-        )}
-
-        {article.author && (
-          <p className="mt-1 text-sm text-[#070546]/60">By {article.author}</p>
-        )}
-
-        <div className="flex justify-center my-6">
-          <div className="w-xl h-100 overflow-hidden rounded-[1.25rem]">
-            <img
-              src={article.img}
-              alt={article.title}
-              className="w-full h-full object-cover"
-            />
+        {/* Hero image — schema field is imageUrl */}
+        {article.imageUrl && (
+          <div className="flex justify-center my-6">
+            <div className="w-full overflow-hidden rounded-[1.25rem]">
+              <img
+                src={article.imageUrl}
+                alt={article.title}
+                className="w-full h-82 object-cover"
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Summary */}
-        {article.summary && (
-          <p className="text-[#070546]/80 text-base italic mb-4">
-            {article.summary}
-          </p>
         )}
 
-        {/* Full content */}
-        <div className="text-[#070546]/90 text-base leading-7 whitespace-pre-line">
-          {article.content}
+        {/* Content — each array entry rendered as its own paragraph */}
+        <div className="text-[#070546]/90 text-base leading-7 space-y-4">
+          {paragraphs.map((para, i) => (
+            <p key={i}>{para}</p>
+          ))}
         </div>
 
         <div className="mt-8">

@@ -3,20 +3,21 @@ import { useState } from "react";
 import Button from "../../components/Button";
 import { createUser } from "../../services/UserService";
 
-const inputClasses =
-  "mt-2 w-full rounded-xl border border-[#070546]/20 bg-[#f3ede6] px-4 py-3 text-sm text-[#070546] outline-none transition placeholder:text-[#070546]/40 focus:border-[#070546] focus:bg-white";
+// ─── Styles ───────────────────────────────────────────────────────────────────
+const inputCls =
+  "mt-1 w-full rounded-lg border border-[#070546]/20 bg-[#f3ede6] px-3 py-1.5 text-xs text-[#070546] outline-none transition placeholder:text-[#070546]/40 focus:border-[#070546] focus:bg-white";
 
-const selectClasses =
-  "mt-2 w-full rounded-xl border border-[#070546]/20 bg-[#f3ede6] px-4 py-3 text-sm text-[#070546] outline-none transition focus:border-[#070546] focus:bg-white appearance-none cursor-pointer";
+const selectCls =
+  "mt-1 w-full rounded-lg border border-[#070546]/20 bg-[#f3ede6] px-3 py-1.5 text-xs text-[#070546] outline-none transition focus:border-[#070546] focus:bg-white appearance-none cursor-pointer";
 
-const actionButtonClassName =
-  "w-full rounded-xl py-3 text-[11px] tracking-[0.2em]";
+const labelCls = "text-xs font-medium text-[#070546]";
+const errorCls = "mt-0.5 text-[10px] text-red-500";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
 const ROLES = [
   { value: "editor", label: "Editor – can create & manage articles" },
   { value: "viewer", label: "Viewer – read-only access" },
 ];
-
 const GENDERS = ["male", "female", "other"];
 
 const BLANK = {
@@ -26,54 +27,48 @@ const BLANK = {
   gender: "",
   contactNumber: "",
   email: "",
-  type: "editor", // matches mongoose field name
+  type: "editor",
   username: "",
   password: "",
   address: "",
 };
 
+// ─── Component ────────────────────────────────────────────────────────────────
 const SignUpPage = () => {
   const navigate = useNavigate();
-
   const [form, setForm] = useState(BLANK);
   const [fieldErrors, setFieldErrors] = useState({});
   const [apiError, setApiError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ── Helpers ───────────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    setForm((p) => ({ ...p, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors((p) => ({ ...p, [name]: "" }));
     if (apiError) setApiError("");
   };
 
-  // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const errs = {};
-    if (!form.firstName.trim()) errs.firstName = "First name is required.";
-    if (!form.lastName.trim()) errs.lastName = "Last name is required.";
-    if (!form.age.trim()) errs.age = "Age is required.";
-    else if (!/^\d+$/.test(form.age.trim())) errs.age = "Age must be a number.";
-    if (!form.gender) errs.gender = "Gender is required.";
-    if (!form.contactNumber.trim())
-      errs.contactNumber = "Contact number is required.";
+    if (!form.firstName.trim()) errs.firstName = "Required.";
+    if (!form.lastName.trim()) errs.lastName = "Required.";
+    if (!form.age.trim()) errs.age = "Required.";
+    else if (!/^\d+$/.test(form.age.trim())) errs.age = "Must be a number.";
+    if (!form.gender) errs.gender = "Required.";
+    if (!form.contactNumber.trim()) errs.contactNumber = "Required.";
     else if (!/^\d{11}$/.test(form.contactNumber.trim()))
-      errs.contactNumber = "Contact number must be 11 digits.";
-    if (!form.email.trim()) errs.email = "Email is required.";
+      errs.contactNumber = "Must be 11 digits.";
+    if (!form.email.trim()) errs.email = "Required.";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
-      errs.email = "Enter a valid email address.";
-    if (!form.username.trim()) errs.username = "Username is required.";
-    else if (/\s/.test(form.username))
-      errs.username = "Username must not contain spaces.";
-    if (!form.password) errs.password = "Password is required.";
-    else if (form.password.length < 8)
-      errs.password = "Password must be at least 8 characters.";
-    if (!form.address.trim()) errs.address = "Address is required.";
+      errs.email = "Invalid email.";
+    if (!form.username.trim()) errs.username = "Required.";
+    else if (/\s/.test(form.username)) errs.username = "No spaces allowed.";
+    if (!form.password) errs.password = "Required.";
+    else if (form.password.length < 8) errs.password = "Min. 8 characters.";
+    if (!form.address.trim()) errs.address = "Required.";
     return errs;
   };
 
-  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
@@ -81,26 +76,22 @@ const SignUpPage = () => {
       setFieldErrors(errs);
       return;
     }
-
     setLoading(true);
     setApiError("");
-
-    const payload = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      age: form.age.trim(),
-      gender: form.gender,
-      contactNumber: form.contactNumber.trim(),
-      email: form.email.trim().toLowerCase(),
-      type: form.type, // "editor" | "viewer"
-      username: form.username.trim().toLowerCase(),
-      password: form.password,
-      address: form.address.trim(),
-      isActive: true,
-    };
-
     try {
-      await createUser(payload);
+      await createUser({
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        age: form.age.trim(),
+        gender: form.gender,
+        contactNumber: form.contactNumber.trim(),
+        email: form.email.trim().toLowerCase(),
+        type: form.type,
+        username: form.username.trim().toLowerCase(),
+        password: form.password,
+        address: form.address.trim(),
+        isActive: true,
+      });
       navigate("/auth/signin", {
         state: { message: "Account created! Please sign in." },
       });
@@ -114,233 +105,213 @@ const SignUpPage = () => {
     }
   };
 
-  // ── Field error helper ────────────────────────────────────────────────────
-  const err = (name) =>
-    fieldErrors[name] ? (
-      <p className="mt-1 text-xs text-red-600">{fieldErrors[name]}</p>
-    ) : null;
-
-  const inputCls = (name) =>
-    `${inputClasses} ${fieldErrors[name] ? "border-red-400" : ""}`;
+  // helpers
+  const fe = (name) =>
+    fieldErrors[name] ? <p className={errorCls}>{fieldErrors[name]}</p> : null;
+  const ic = (name) =>
+    `${inputCls} ${fieldErrors[name] ? "border-red-400" : ""}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f3ede6] px-6 py-12">
-      <div className="w-full max-w-2xl rounded-3xl bg-white shadow-lg border border-[#070546]/10 p-8 sm:p-10">
-        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#070546]">
-          Create Your Account
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-[#f3ede6] px-4 py-4">
+      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-lg border border-[#070546]/10 px-8 py-6">
+        {/* Header */}
+        <div className="mb-4">
+          <h1 className="text-2xl font-serif font-bold text-[#070546]">
+            Create Your Account
+          </h1>
+          <p className="mt-1 text-xs text-[#070546]/60">
+            Join Crème &amp; Crumbs and enjoy fresh baked goodness.
+          </p>
+        </div>
 
-        <p className="mt-3 text-sm leading-6 text-[#070546]/70">
-          Join Crème &amp; Crumbs and enjoy fresh baked goodness delivered to
-          you.
-        </p>
-
-        {/* ── API Error ──────────────────────────────────────────────────────── */}
+        {/* API Error */}
         {apiError && (
-          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
             {apiError}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          {/* Name Row */}
-          <div className="grid gap-5 sm:grid-cols-2">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {/* Row 1 — Name */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-[#070546]">
-                First Name
-              </label>
+              <label className={labelCls}>First Name</label>
               <input
                 name="firstName"
                 value={form.firstName}
                 onChange={handleChange}
                 type="text"
                 placeholder="John"
-                className={inputCls("firstName")}
+                className={ic("firstName")}
               />
-              {err("firstName")}
+              {fe("firstName")}
             </div>
             <div>
-              <label className="text-sm font-medium text-[#070546]">
-                Last Name
-              </label>
+              <label className={labelCls}>Last Name</label>
               <input
                 name="lastName"
                 value={form.lastName}
                 onChange={handleChange}
                 type="text"
                 placeholder="Doe"
-                className={inputCls("lastName")}
+                className={ic("lastName")}
               />
-              {err("lastName")}
+              {fe("lastName")}
             </div>
           </div>
 
-          {/* Age & Gender Row */}
-          <div className="grid gap-5 sm:grid-cols-2">
+          {/* Row 2 — Age, Gender, Contact */}
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="text-sm font-medium text-[#070546]">Age</label>
+              <label className={labelCls}>Age</label>
               <input
                 name="age"
                 value={form.age}
                 onChange={handleChange}
                 type="text"
                 placeholder="25"
-                className={inputCls("age")}
+                className={ic("age")}
               />
-              {err("age")}
+              {fe("age")}
             </div>
             <div>
-              <label className="text-sm font-medium text-[#070546]">
-                Gender
-              </label>
+              <label className={labelCls}>Gender</label>
               <select
                 name="gender"
                 value={form.gender}
                 onChange={handleChange}
-                className={`${selectClasses} ${fieldErrors.gender ? "border-red-400" : ""}`}
+                className={`${selectCls} ${fieldErrors.gender ? "border-red-400" : ""}`}
               >
-                <option value="">Select gender</option>
+                <option value="">Select</option>
                 {GENDERS.map((g) => (
                   <option key={g} value={g}>
                     {g.charAt(0).toUpperCase() + g.slice(1)}
                   </option>
                 ))}
               </select>
-              {err("gender")}
+              {fe("gender")}
             </div>
-          </div>
-
-          {/* Contact & Email Row */}
-          <div className="grid gap-5 sm:grid-cols-2">
             <div>
-              <label className="text-sm font-medium text-[#070546]">
-                Contact Number
-              </label>
+              <label className={labelCls}>Contact Number</label>
               <input
                 name="contactNumber"
                 value={form.contactNumber}
                 onChange={handleChange}
                 type="text"
                 placeholder="09XXXXXXXXX"
-                className={inputCls("contactNumber")}
+                className={ic("contactNumber")}
               />
-              {err("contactNumber")}
+              {fe("contactNumber")}
             </div>
+          </div>
+
+          {/* Row 3 — Email, Username */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium text-[#070546]">
-                Email
-              </label>
+              <label className={labelCls}>Email</label>
               <input
                 name="email"
                 value={form.email}
                 onChange={handleChange}
                 type="email"
                 placeholder="you@example.com"
-                className={inputCls("email")}
+                className={ic("email")}
               />
-              {err("email")}
+              {fe("email")}
+            </div>
+            <div>
+              <label className={labelCls}>Username</label>
+              <input
+                name="username"
+                value={form.username}
+                onChange={handleChange}
+                type="text"
+                placeholder="johndoe"
+                className={ic("username")}
+              />
+              {fe("username")}
             </div>
           </div>
 
-          {/* Role */}
-          <div>
-            <label className="text-sm font-medium text-[#070546]">
-              Account Role
-            </label>
-            <select
-              name="type"
-              value={form.type}
-              onChange={handleChange}
-              className={selectClasses}
-            >
-              {ROLES.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-[#070546]/50">
-              Admin accounts can only be created by an existing admin.
-            </p>
+          {/* Row 4 — Role, Password */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Account Role</label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                className={selectCls}
+              >
+                {ROLES.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-0.5 text-[10px] text-[#070546]/40">
+                Admin accounts require an existing admin.
+              </p>
+            </div>
+            <div>
+              <label className={labelCls}>Password</label>
+              <input
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                type="password"
+                placeholder="••••••••"
+                className={ic("password")}
+              />
+              {fe("password")}
+            </div>
           </div>
 
-          {/* Username */}
+          {/* Row 5 — Address */}
           <div>
-            <label className="text-sm font-medium text-[#070546]">
-              Username
-            </label>
-            <input
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              type="text"
-              placeholder="johndoe"
-              className={inputCls("username")}
-            />
-            {err("username")}
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="text-sm font-medium text-[#070546]">
-              Password
-            </label>
-            <input
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              type="password"
-              placeholder="••••••••"
-              className={inputCls("password")}
-            />
-            {err("password")}
-          </div>
-
-          {/* Address */}
-          <div>
-            <label className="text-sm font-medium text-[#070546]">
-              Address
-            </label>
+            <label className={labelCls}>Address</label>
             <textarea
               name="address"
               value={form.address}
               onChange={handleChange}
-              rows={3}
+              rows={2}
               placeholder="123 Main St, City"
-              className={`${inputCls("address")} resize-none`}
+              className={`${ic("address")} resize-none`}
             />
-            {err("address")}
+            {fe("address")}
           </div>
 
+          {/* Submit */}
           <Button
             type="submit"
             variant="primary"
             disabled={loading}
-            className={`${actionButtonClassName} bg-[#070546] text-[#f3ede6] hover:opacity-90 disabled:opacity-50`}
+            className="w-full rounded-lg py-2 text-[11px] tracking-[0.2em] bg-[#070546] text-[#f3ede6] hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Creating Account…" : "Create Account"}
           </Button>
 
-          <div className="grid gap-3 pt-2 sm:grid-cols-2">
+          {/* OAuth */}
+          <div className="grid grid-cols-2 gap-3">
             <Button
               type="button"
               variant="secondary"
-              className={`${actionButtonClassName} border border-[#070546] text-[#070546] hover:bg-[#070546] hover:text-[#f3ede6]`}
+              className="w-full rounded-lg py-2 text-[11px] tracking-[0.2em] border border-[#070546] text-[#070546] hover:bg-[#070546] hover:text-[#f3ede6]"
             >
               Sign Up with Google
             </Button>
-
             <Button
               type="button"
               variant="secondary"
-              className={`${actionButtonClassName} border border-[#070546] text-[#070546] hover:bg-[#070546] hover:text-[#f3ede6]`}
+              className="w-full rounded-lg py-2 text-[11px] tracking-[0.2em] border border-[#070546] text-[#070546] hover:bg-[#070546] hover:text-[#f3ede6]"
             >
               Sign Up with Apple
             </Button>
           </div>
         </form>
 
-        <div className="mt-8 border-t border-[#070546]/10 pt-6 text-sm text-[#070546]/70">
+        {/* Footer */}
+        <div className="mt-4 border-t border-[#070546]/10 pt-3 text-xs text-[#070546]/60">
           Already have an account?{" "}
           <Link
             to="/auth/signin"

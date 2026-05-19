@@ -1,4 +1,3 @@
-// src/pages/ArticleListPage.jsx
 import { useState, useEffect } from "react";
 import ArticleList from "../../components/ArticleList";
 import Button from "../../components/Button";
@@ -16,13 +15,12 @@ const ArticleListPage = () => {
     const load = async () => {
       try {
         const { data } = await fetchArticles();
-        // Backend returns { articles: [...] }; handle both shapes defensively
         const raw = Array.isArray(data) ? data : (data.articles ?? []);
-        // Only expose published articles on the public page
-        const published = raw
-          .filter((a) => a.status === "published")
+        // Schema uses isActive (bool) — only show active articles publicly
+        const active = raw
+          .filter((a) => a.isActive !== false)
           .map(mapArticleFromApi);
-        setArticles(published);
+        setArticles(active);
       } catch {
         setError("Could not load articles. Please try again later.");
       } finally {
@@ -34,31 +32,26 @@ const ArticleListPage = () => {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      {/* ── Hero ─────────────────────────────────────────────────────────── */}
       <section className="border-y-2 border-zinc-900 bg-[#f3ede6] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
           <div className="order-2 lg:order-1">
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#070546]">
               Articles
             </p>
-
             <h1 className="max-w-xl text-3xl font-bold font-serif leading-tight text-[#070546] sm:text-4xl">
               Our Cookie Flavors
             </h1>
-
             <p className="mt-4 max-w-lg text-sm leading-7 text-[#070546] sm:text-base">
               Discover our featured cookie flavors! Each recipe is baked fresh
               daily, using high-quality ingredients to bring you the perfect
               balance of taste and texture.
             </p>
-
             <div className="mt-6 flex flex-wrap gap-3">
               <Button to="/" variant="primary">
                 Back Home
               </Button>
             </div>
           </div>
-
           <div className="overflow-hidden rounded-3xl order-1 lg:order-2">
             <img
               src="https://www.bakingbusiness.com/ext/resources/2022/11/11/1111-LastCrumb.webp?height=667&t=1697569640&width=1080"
@@ -69,7 +62,6 @@ const ArticleListPage = () => {
         </div>
       </section>
 
-      {/* ── Article grid ─────────────────────────────────────────────────── */}
       <section className="border-y-2 border-zinc-900 bg-[#070546] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#f3ede6]">
@@ -83,15 +75,12 @@ const ArticleListPage = () => {
         {loading && (
           <p className="text-[#f3ede6]/70 text-sm">Loading articles…</p>
         )}
-
         {error && <p className="text-red-400 text-sm">{error}</p>}
-
         {!loading && !error && articles.length === 0 && (
           <p className="text-[#f3ede6]/70 text-sm">
-            No articles published yet. Check back soon!
+            No articles available yet. Check back soon!
           </p>
         )}
-
         {!loading && !error && articles.length > 0 && (
           <ArticleList articles={articles} />
         )}
