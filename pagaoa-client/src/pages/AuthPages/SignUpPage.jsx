@@ -14,10 +14,7 @@ const labelCls = "text-xs font-medium text-[#070546]";
 const errorCls = "mt-0.5 text-[10px] text-red-500";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const ROLES = [
-  { value: "editor", label: "Editor – can create & manage articles" },
-  { value: "viewer", label: "Viewer – read-only access" },
-];
+const ROLES = [{ value: "viewer", label: "Viewer – read-only access" }];
 const GENDERS = ["male", "female", "other"];
 
 const BLANK = {
@@ -86,7 +83,7 @@ const SignUpPage = () => {
         gender: form.gender,
         contactNumber: form.contactNumber.trim(),
         email: form.email.trim().toLowerCase(),
-        type: form.type,
+        type: "viewer",
         username: form.username.trim().toLowerCase(),
         password: form.password,
         address: form.address.trim(),
@@ -231,17 +228,14 @@ const SignUpPage = () => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelCls}>Account Role</label>
+
               <select
                 name="type"
-                value={form.type}
-                onChange={handleChange}
-                className={selectCls}
+                value="viewer"
+                disabled
+                className={selectCls + " opacity-60 cursor-not-allowed"}
               >
-                {ROLES.map(({ value, label }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
+                <option value="viewer">Viewer</option>
               </select>
               <p className="mt-0.5 text-[10px] text-[#070546]/40">
                 Admin accounts require an existing admin.

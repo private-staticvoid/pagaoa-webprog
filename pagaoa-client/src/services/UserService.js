@@ -1,10 +1,10 @@
-import constants from "../constant";
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/api/user",
+  baseURL: `${import.meta.env.VITE_API_URL}/api/user`,
 });
 
+// Attach token
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
 
@@ -14,6 +14,18 @@ API.interceptors.request.use((req) => {
 
   return req;
 });
+
+// Handle errors globally
+API.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/auth/signin";
+    }
+    return Promise.reject(err);
+  },
+);
 
 export const fetchUsers = () => API.get("/");
 export const createUser = (user) => API.post("/", user);

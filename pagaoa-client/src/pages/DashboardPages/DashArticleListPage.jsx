@@ -143,7 +143,7 @@ const DashArticleListPage = () => {
     const payload = {
       name: form.name.trim().toLowerCase(),
       title: form.title.trim(),
-      content: form.content.trim().split("\n").filter(Boolean),
+      content: form.content.trim(),
       imageUrl: form.imageUrl.trim(),
     };
 

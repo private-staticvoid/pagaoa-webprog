@@ -114,23 +114,6 @@ const SignInPage = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-[#070546]/70">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-[#070546]/30 accent-[#070546]"
-              />
-              Remember me
-            </label>
-
-            <button
-              type="button"
-              className="font-medium text-[#070546] hover:underline"
-            >
-              Forgot Password?
-            </button>
-          </div>
-
           <Button
             type="submit"
             variant="primary"
