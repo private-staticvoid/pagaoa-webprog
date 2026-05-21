@@ -14,12 +14,11 @@ API.interceptors.request.use((req) => {
 
   return req;
 });
-
 // Handle errors globally
 API.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !err.config.url.includes("/login")) {
       localStorage.removeItem("token");
       window.location.href = "/auth/signin";
     }
