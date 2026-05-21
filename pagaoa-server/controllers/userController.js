@@ -5,27 +5,75 @@ const jwt = require("jsonwebtoken");
 const getUsers = async (req, res) => {
   try {
     const users = await User.find({}, "-password");
+
     res.json({ users });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
+
 const createUser = async (req, res) => {
   try {
-    const requester = req.user;
+    const {
+      firstName,
+      lastName,
+      age,
+      gender,
+      contactNumber,
+      email,
+      type,
+      username,
+      password,
+      address,
+      isActive,
+    } = req.body;
 
-    if (!req.body.password) {
-      return res.status(400).json({ message: "Password is required" });
+    // Check all required fields
+    if (
+      !firstName ||
+      !lastName ||
+      !age ||
+      !gender ||
+      !contactNumber ||
+      !email ||
+      !username ||
+      !password ||
+      !address
+    ) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    // Check existing email or username
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({
+        message:
+          existingUser.email === email
+            ? "Email already exists"
+            : "Username already exists",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      ...req.body,
+      firstName,
+      lastName,
+      age,
+      gender,
+      contactNumber,
+      email,
+      type,
+      username,
       password: hashedPassword,
+      address,
+      isActive: isActive ?? true,
     });
 
-    res.status(201).json(user);
+    const safeUser = await User.findById(user._id).select("-password");
+    res.status(201).json(safeUser);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -33,13 +81,36 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    if (req.body.password) {
-      req.body.password = await bcrypt.hash(req.body.password, 10);
+    if (req.user.id !== req.params.id && req.user.type !== "admin") {
+      return res.status(403).json({ message: "Forbidden" });
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    const allowedFields = [
+      "firstName",
+      "lastName",
+      "age",
+      "gender",
+      "contactNumber",
+      "email",
+      "type",
+      "username",
+      "address",
+      "isActive",
+    ];
+
+    const updates = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
+
+    if (req.body.password) {
+      updates.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
 
     res.json(user);
   } catch (error) {
@@ -49,10 +120,22 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
+    // Only admin can delete
+    if (req.user.type !== "admin") {
+      return res.status(403).json({
+        message: "Forbidden",
+      });
+    }
+
     await User.findByIdAndDelete(req.params.id);
-    res.json({ message: "User deleted successfully" });
+
+    res.json({
+      message: "User deleted successfully",
+    });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({
+      message: error.message,
+    });
   }
 };
 
@@ -60,43 +143,71 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
+
+    // Generic login error
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
     }
 
+    // Inactive account
     if (!user.isActive) {
-      return res
-        .status(403)
-        .json({ message: "Your account is inactive. Please contact support." });
+      return res.status(403).json({
+        message: "Your account is inactive",
+      });
     }
 
+    // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        message: "Invalid email or password",
+      });
     }
 
+    // Block viewer accounts
     if (user.type === "viewer") {
       return res.status(403).json({
         message: "Viewer accounts cannot access the dashboard.",
       });
     }
 
+    // Generate JWT
     const token = jwt.sign(
-      { id: user._id, email: user.email, type: user.type },
+      {
+        id: user._id.toString(),
+        email: user.email,
+        type: user.type,
+      },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" },
+      {
+        expiresIn: "1h",
+      },
     );
+
+    // Fetch user without password
+    const safeUser = await User.findById(user._id).select("-password");
 
     res.json({
       message: "Login successful",
       token,
-      type: user.type,
-      firstName: user.firstName,
+      expiresIn: 3600,
+      user: safeUser, // ✅ replaces the separate type/firstName fields
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
 
-module.exports = { getUsers, createUser, updateUser, deleteUser, loginUser };
+module.exports = {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  loginUser,
+};

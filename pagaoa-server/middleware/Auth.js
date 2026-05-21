@@ -2,24 +2,46 @@ const jwt = require("jsonwebtoken");
 
 const auth = (req, res, next) => {
   try {
-    // Get token from: Authorization: Bearer <token>
     const authHeader = req.headers.authorization;
 
+    // Check if header exists
     if (!authHeader) {
-      return res.status(401).json({ message: "No token provided" });
+      return res.status(401).json({
+        message: "Access denied",
+      });
     }
 
+    // Check Bearer format
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        message: "Invalid authorization format",
+      });
+    }
+
+    // Extract token
     const token = authHeader.split(" ")[1];
 
+    // Verify token exists
     if (!token) {
-      return res.status(401).json({ message: "Invalid token format" });
+      return res.status(401).json({
+        message: "Access denied",
+      });
     }
 
-    // Verify token
+    // Verify JWT
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded || !decoded.id) {
+      return res.status(401).json({
+        message: "Invalid token payload",
+      });
+    }
 
-    // Attach user to request
-    req.user = decoded;
+    // Attach safe user data
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      type: decoded.type,
+    };
 
     next();
   } catch (error) {
