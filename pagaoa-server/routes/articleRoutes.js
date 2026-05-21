@@ -1,7 +1,7 @@
 const express = require("express");
 
-const auth = require("../middleware/auth");
-const authorize = require("../middleware/authorize");
+const auth = require("../middleware/Auth");
+const authorize = require("../middleware/Authorize");
 
 const {
   getArticles,
