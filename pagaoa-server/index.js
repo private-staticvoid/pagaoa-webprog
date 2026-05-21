@@ -1,23 +1,17 @@
+const dns = require("node:dns");
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
+const helmet = require("helmet");
 const bodyParser = require("body-parser");
-const jsonParser = bodyParser.json();
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const articleRoutes = require("./routes/articleRoutes");
-const helmet = require("helmet");
 
 const app = express();
 
 connectDB();
-
-app.use(express.json());
-
-app.use(jsonParser);
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors());
 
 const corsOptions = {
   origin: "*",
@@ -28,21 +22,12 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
-app.options(/.*/, cors(corsOptions));
+app.use(helmet());
 app.use(cors(corsOptions));
+app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content, Accept, Content-Type, Authorization",
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-  );
-  next();
-});
+app.options(/.*/, cors(corsOptions));
 
 app.use("/api/users", userRoutes);
 app.use("/api/user", userRoutes);
@@ -53,7 +38,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Server Error" });
 });
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.exports = app;
