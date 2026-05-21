@@ -23,7 +23,7 @@ import {
   createArticle,
   updateArticle,
   deleteArticle,
-} from "../../services/articleService";
+} from "../../services/ArticleService";
 
 const BLANK_FORM = {
   name: "",
