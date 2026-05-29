@@ -81,6 +81,12 @@ function ReportsPage() {
             display: none !important;
           }
 
+          .MuiAppBar-root,
+          .MuiDrawer-root,
+          .MuiDrawer-paper {
+            display: none !important;
+          }
+
           .MuiCard-root {
             box-shadow: none !important;
             border: 1px solid #ddd !important;

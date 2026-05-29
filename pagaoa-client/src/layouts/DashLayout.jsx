@@ -1,3 +1,5 @@
+
+cat > /mnt/user-data/outputs/DashLayout.jsx << 'EOF'
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 
@@ -34,25 +36,34 @@ const drawerWidth = 240;
 const PRIMARY = "#070546";
 const LIGHT = "#f3ede6";
 
-const dashboardNavItems = [
+const allNavItems = [
   {
     label: "Dashboard",
     title: "Dashboard",
     to: "/dashboard",
     icon: DashboardIcon,
+    roles: ["admin", "editor", "viewer"],
   },
   {
     label: "Reports",
     title: "Reports",
     to: "/dashboard/reports",
     icon: AssessmentIcon,
+    roles: ["admin", "editor", "viewer"],
   },
-  { label: "Users", title: "Users", to: "/dashboard/users", icon: PeopleIcon },
+  {
+    label: "Users",
+    title: "Users",
+    to: "/dashboard/users",
+    icon: PeopleIcon,
+    roles: ["admin"],
+  },
   {
     label: "articles",
     title: "Articles",
     to: "/dashboard/articles",
     icon: InsightsIcon,
+    roles: ["admin", "editor", "viewer"],
   },
 ];
 
@@ -125,7 +136,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const getPageTitle = (pathname) =>
-  dashboardNavItems.find((item) => item.to === pathname)?.title || "Welcome";
+  allNavItems.find((item) => item.to === pathname)?.title || "Welcome";
 
 const DashLayout = () => {
   const theme = useTheme();
@@ -133,6 +144,18 @@ const DashLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = getPageTitle(location.pathname);
+
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("currentUser")) || null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const userRole = currentUser?.type ?? "viewer";
+
+  const navItems = allNavItems.filter((item) => item.roles.includes(userRole));
 
   useEffect(() => {
     document.title = pageTitle;
@@ -201,7 +224,7 @@ const DashLayout = () => {
         <Divider sx={{ borderColor: alpha(LIGHT, 0.2) }} />
 
         <List>
-          {dashboardNavItems.map(({ label, to, icon: Icon }) => (
+          {navItems.map(({ label, to, icon: Icon }) => (
             <ListItem key={to} disablePadding>
               <ListItemButton
                 component={Link}

@@ -5,6 +5,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -24,6 +25,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import LockResetIcon from "@mui/icons-material/LockReset";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchUsers, createUser, updateUser } from "../../services/UserService";
 
@@ -33,7 +35,6 @@ const GENDERS = ["male", "female", "other"];
 const BLANK_FORM = {
   firstName: "",
   lastName: "",
-  age: "",
   gender: "",
   contactNumber: "",
   email: "",
@@ -75,6 +76,7 @@ const UsersPage = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("");
@@ -114,22 +116,20 @@ const UsersPage = () => {
     setErrors({});
   };
 
-  // FIX: when editing, populate all existing fields and leave password blank
-  // (API never returns the password — user only fills it in if they want to change it)
   const openModal = (user) => {
     const userId = user?._id ?? user?.id ?? null;
     setModal({ open: true, id: userId });
+    setShowChangePassword(false);
     if (user) {
       setForm({
         firstName: user.firstName ?? "",
         lastName: user.lastName ?? "",
-        age: String(user.age ?? ""),
         gender: user.gender ?? "",
         contactNumber: user.contactNumber ?? "",
         email: user.email ?? "",
         type: user.type ?? "editor",
         username: user.username ?? "",
-        password: "", // intentionally blank — fill only to change
+        password: "",
         address: user.address ?? "",
         isActive: user.isActive ?? true,
       });
@@ -142,6 +142,7 @@ const UsersPage = () => {
   const closeModal = () => {
     setModal({ open: false, id: null });
     setShowPassword(false);
+    setShowChangePassword(false);
     resetForm();
   };
 
@@ -153,7 +154,6 @@ const UsersPage = () => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // FIX: password is only required and validated on create, not on edit
   const validate = () => {
     const next = {};
     const isEditing = Boolean(modal.id);
@@ -163,7 +163,6 @@ const UsersPage = () => {
     const required = [
       ["firstName", "First name"],
       ["lastName", "Last name"],
-      ["age", "Age"],
       ["gender", "Gender"],
       ["contactNumber", "Contact number"],
       ["email", "Email"],
@@ -172,7 +171,6 @@ const UsersPage = () => {
       ["address", "Address"],
     ];
 
-    // Password only required when creating a new user
     if (!isEditing) {
       required.push(["password", "Password"]);
     }
@@ -186,14 +184,11 @@ const UsersPage = () => {
     if (!next.username && /\s/.test(username))
       next.username = "Username must not contain spaces.";
 
-    // Only validate password length if a value was entered
     if (form.password && form.password.length < 8)
       next.password = "Password must be at least 8 characters.";
 
     if (!next.contactNumber && !/^\d{11}$/.test(form.contactNumber))
       next.contactNumber = "Contact number must be 11 digits.";
-    if (!next.age && !/^\d+$/.test(form.age))
-      next.age = "Age must be a number.";
 
     if (
       !next.email &&
@@ -219,11 +214,9 @@ const UsersPage = () => {
       return;
     }
 
-    // FIX: only include password in payload if the user actually typed one
     const payload = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
-      age: form.age.trim(),
       gender: form.gender.trim().toLowerCase(),
       contactNumber: form.contactNumber.trim(),
       email: form.email.trim().toLowerCase(),
@@ -319,7 +312,6 @@ const UsersPage = () => {
         `${row.firstName || ""} ${row.lastName || ""}`.trim(),
     },
     { field: "username", headerName: "Username", minWidth: 150 },
-    { field: "age", headerName: "Age", width: 80 },
     {
       field: "gender",
       headerName: "Gender",
@@ -510,7 +502,6 @@ const UsersPage = () => {
               </Stack>
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField {...fieldProps("age", "Age")} />
                 <TextField
                   {...fieldProps("gender", "Gender", { select: true })}
                 >
@@ -520,18 +511,13 @@ const UsersPage = () => {
                     </MenuItem>
                   ))}
                 </TextField>
-              </Stack>
-
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                 <TextField {...fieldProps("contactNumber", "Contact Number")} />
-                <TextField
-                  {...fieldProps("email", "Email Address", {
-                    type: "email",
-                  })}
-                />
               </Stack>
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <TextField
+                  {...fieldProps("email", "Email Address", { type: "email" })}
+                />
                 <TextField {...fieldProps("type", "Role", { select: true })}>
                   {TYPES.filter((t) =>
                     currentUser?.type === "admin" ? true : t !== "admin",
@@ -541,16 +527,14 @@ const UsersPage = () => {
                     </MenuItem>
                   ))}
                 </TextField>
-                <TextField {...fieldProps("username", "Username")} />
               </Stack>
 
-              <TextField
-                {...fieldProps(
-                  "password",
-                  modal.id
-                    ? "New Password (leave blank to keep current)"
-                    : "Password",
-                  {
+              <TextField {...fieldProps("username", "Username")} />
+
+              {/* Password: always shown on create; toggled via button on edit */}
+              {!modal.id ? (
+                <TextField
+                  {...fieldProps("password", "Password", {
                     type: showPassword ? "text" : "password",
                     slotProps: {
                       input: {
@@ -574,9 +558,72 @@ const UsersPage = () => {
                         ),
                       },
                     },
-                  },
-                )}
-              />
+                  })}
+                />
+              ) : (
+                <Box>
+                  {!showChangePassword ? (
+                    <Button
+                      variant="outlined"
+                      startIcon={<LockResetIcon />}
+                      onClick={() => {
+                        setShowChangePassword(true);
+                        setForm((prev) => ({ ...prev, password: "" }));
+                      }}
+                    >
+                      Change Password
+                    </Button>
+                  ) : (
+                    <Collapse in={showChangePassword}>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        alignItems="flex-start"
+                      >
+                        <TextField
+                          {...fieldProps("password", "New Password", {
+                            type: showPassword ? "text" : "password",
+                            slotProps: {
+                              input: {
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <IconButton
+                                      edge="end"
+                                      onClick={() => setShowPassword((p) => !p)}
+                                      onMouseDown={(e) => e.preventDefault()}
+                                      aria-label={
+                                        showPassword
+                                          ? "Hide password"
+                                          : "Show password"
+                                      }
+                                    >
+                                      {showPassword ? (
+                                        <VisibilityOff />
+                                      ) : (
+                                        <Visibility />
+                                      )}
+                                    </IconButton>
+                                  </InputAdornment>
+                                ),
+                              },
+                            },
+                          })}
+                        />
+                        <Button
+                          sx={{ mt: 1, whiteSpace: "nowrap" }}
+                          onClick={() => {
+                            setShowChangePassword(false);
+                            setForm((prev) => ({ ...prev, password: "" }));
+                            setErrors((prev) => ({ ...prev, password: "" }));
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </Stack>
+                    </Collapse>
+                  )}
+                </Box>
+              )}
 
               <TextField
                 {...fieldProps("address", "Address", {
