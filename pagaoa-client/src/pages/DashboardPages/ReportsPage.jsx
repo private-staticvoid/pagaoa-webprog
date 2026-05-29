@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -54,122 +54,111 @@ const statCard = (title, value, percent, color, Icon) => (
   </Card>
 );
 
+const PRINT_STYLE_ID = "report-print-styles";
+
 function ReportsPage() {
   const printRef = useRef(null);
 
-  const handlePrint = () => {
-    const printContent = printRef.current;
-    if (!printContent) return;
+  useEffect(() => {
+    // Inject print styles once on mount, remove on unmount
+    const existing = document.getElementById(PRINT_STYLE_ID);
+    if (!existing) {
+      const style = document.createElement("style");
+      style.id = PRINT_STYLE_ID;
+      style.innerHTML = `
+        @media print {
+      
+          body > *:not(#root) { display: none !important; }
+          #root > *:not([data-print-root]) { display: none !important; }
+          [data-print-hide] { display: none !important; }
 
-    const printWindow = window.open("", "_blank", "width=1200,height=900");
-    if (!printWindow) return;
-
-    const headMarkup = Array.from(
-      document.querySelectorAll("style, link[rel='stylesheet']"),
-    )
-      .map((node) => node.outerHTML)
-      .join("");
-
-    const exportedAt = new Intl.DateTimeFormat("en-US", {
-      dateStyle: "long",
-      timeStyle: "short",
-    }).format(new Date());
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Sales Report</title>
-        ${headMarkup}
-
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-            background: ${cream};
+       
+          [data-print-root] {
+            display: block !important;
+            position: static !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: ${cream} !important;
           }
 
-          h1 {
-            font-size: 26px;
-            margin-bottom: 4px;
-            color: ${navy};
-          }
-
-          p {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 16px;
-          }
-
-          .report-shell {
-            padding: 10px;
-          }
-
-          .report-header {
-            margin-bottom: 20px;
-            border-bottom: 2px solid ${navy};
-            padding-bottom: 10px;
-          }
-
-          .report-content {
-            display: block;
-          }
-
-          .MuiCard-root {
-            box-shadow: none !important;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            border-radius: 12px !important;
-            page-break-inside: avoid;
-          }
-
-          .MuiStack-root {
+          [data-print-content] {
             display: block !important;
           }
 
-          canvas, svg {
-            max-width: 100% !important;
+          
+          @page {
+            size: A4 portrait;
+            margin: 16mm 12mm;
           }
-        </style>
-      </head>
 
-      <body>
-        <main class="report-shell">
-          <header class="report-header">
-            <h1>Sales Reports</h1>
-            <p>Creme and Crumbs Analytics Overview — Prepared on ${exportedAt}</p>
-          </header>
+       
+          body {
+            background: ${cream} !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
 
-          <section class="report-content">
-            ${printContent.outerHTML}
-          </section>
-        </main>
-      </body>
-      </html>
-    `);
+  
+          .MuiStack-root {
+            display: flex !important;
+            flex-wrap: wrap !important;
+          }
 
-    printWindow.document.close();
+      
+          .MuiCard-root {
+            box-shadow: none !important;
+            border: 1px solid #ddd !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
 
+          svg {
+            max-width: 100% !important;
+            overflow: visible !important;
+          }
+
+    
+          .MuiChip-root,
+          [style*="background"] {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    return () => {
+      const el = document.getElementById(PRINT_STYLE_ID);
+      if (el) el.remove();
+    };
+  }, []);
+
+  const handlePrint = () => {
     setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 500);
+      window.print();
+    }, 100);
   };
 
   return (
-    <Box sx={{ p: 3, backgroundColor: cream, minHeight: "100vh" }}>
-      {/* Export Button */}
-      <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
+    <Box
+      data-print-root
+      sx={{ p: 3, backgroundColor: cream, minHeight: "100vh" }}
+    >
+      <Box
+        data-print-hide
+        sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}
+      >
         <Button variant="outlined" onClick={handlePrint}>
           Export PDF
         </Button>
       </Box>
 
       {/* Report Content */}
-      <Box ref={printRef}>
+      <Box ref={printRef} data-print-content>
         <Box sx={{ mb: 3 }}>
           <Typography
             variant="h4"
