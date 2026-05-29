@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -36,7 +36,6 @@ const statCard = (title, value, percent, color, Icon) => (
           sx={{ mt: 1, backgroundColor: color, color: "#fff" }}
         />
       </Box>
-
       <Box
         sx={{
           width: 48,
@@ -54,122 +53,77 @@ const statCard = (title, value, percent, color, Icon) => (
   </Card>
 );
 
+const PRINT_STYLE_ID = "report-print-styles";
+
 function ReportsPage() {
-  const printRef = useRef(null);
+  useEffect(() => {
+    const existing = document.getElementById(PRINT_STYLE_ID);
+    if (!existing) {
+      const style = document.createElement("style");
+      style.id = PRINT_STYLE_ID;
+      style.innerHTML = `
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 16mm 12mm;
+          }
 
-  const handlePrint = () => {
-    const printContent = printRef.current;
-    if (!printContent) return;
-
-    const printWindow = window.open("", "_blank", "width=1200,height=900");
-    if (!printWindow) return;
-
-    const headMarkup = Array.from(
-      document.querySelectorAll("style, link[rel='stylesheet']"),
-    )
-      .map((node) => node.outerHTML)
-      .join("");
-
-    const exportedAt = new Intl.DateTimeFormat("en-US", {
-      dateStyle: "long",
-      timeStyle: "short",
-    }).format(new Date());
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Sales Report</title>
-        ${headMarkup}
-
-        <style>
           body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-            background: ${cream};
+            background: ${cream} !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           }
 
-          h1 {
-            font-size: 26px;
-            margin-bottom: 4px;
-            color: ${navy};
-          }
-
-          p {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 16px;
-          }
-
-          .report-shell {
-            padding: 10px;
-          }
-
-          .report-header {
-            margin-bottom: 20px;
-            border-bottom: 2px solid ${navy};
-            padding-bottom: 10px;
-          }
-
-          .report-content {
-            display: block;
+          .no-print {
+            display: none !important;
           }
 
           .MuiCard-root {
             box-shadow: none !important;
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            border-radius: 12px !important;
-            page-break-inside: avoid;
+            border: 1px solid #ddd !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
           }
 
-          .MuiStack-root {
-            display: block !important;
+          .MuiChip-root {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
-          canvas, svg {
+          svg {
             max-width: 100% !important;
+            overflow: visible !important;
           }
-        </style>
-      </head>
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
-      <body>
-        <main class="report-shell">
-          <header class="report-header">
-            <h1>Sales Reports</h1>
-            <p>Creme and Crumbs Analytics Overview — Prepared on ${exportedAt}</p>
-          </header>
+    return () => {
+      const el = document.getElementById(PRINT_STYLE_ID);
+      if (el) el.remove();
+    };
+  }, []);
 
-          <section class="report-content">
-            ${printContent.outerHTML}
-          </section>
-        </main>
-      </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
-    }, 500);
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <Box sx={{ p: 3, backgroundColor: cream, minHeight: "100vh" }}>
-      {/* Export Button */}
-      <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
+      <Box
+        className="no-print"
+        sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}
+      >
         <Button variant="outlined" onClick={handlePrint}>
           Export PDF
         </Button>
       </Box>
 
-      {/* Report Content */}
-      <Box ref={printRef}>
+      <Box>
         <Box sx={{ mb: 3 }}>
           <Typography
             variant="h4"
@@ -281,7 +235,6 @@ function ReportsPage() {
             >
               Top Selling Cookies
             </Typography>
-
             <BarChart
               height={250}
               series={[{ data: [120, 95, 80, 65], label: "Units Sold" }]}
@@ -327,7 +280,6 @@ function ReportsPage() {
               <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 1 }}>
                 April Progress (₱24,560 / ₱30,000)
               </Typography>
-
               <LinearProgress
                 variant="determinate"
                 value={82}
@@ -349,7 +301,6 @@ function ReportsPage() {
                 <Typography sx={{ fontSize: 11, opacity: 0.6 }}>
                   {item.month}
                 </Typography>
-
                 <LinearProgress
                   variant="determinate"
                   value={item.value}
