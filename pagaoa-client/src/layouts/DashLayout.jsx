@@ -1,5 +1,3 @@
-
-cat > /mnt/user-data/outputs/DashLayout.jsx << 'EOF'
 import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 
