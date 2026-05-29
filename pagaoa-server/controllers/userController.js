@@ -195,7 +195,7 @@ const loginUser = async (req, res) => {
       message: "Login successful",
       token,
       expiresIn: 3600,
-      user: safeUser, // ✅ replaces the separate type/firstName fields
+      user: safeUser,
     });
   } catch (error) {
     res.status(500).json({

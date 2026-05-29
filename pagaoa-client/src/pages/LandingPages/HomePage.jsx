@@ -134,7 +134,7 @@ const HomePage = () => {
                 {card.desc}
               </p>
 
-              <Link to={`/article/${card.name}`}>
+              <Link to={`/articles`}>
                 <Button className="mt-4 bg-[#fef6e9] text-[#070546] hover:bg-[#e8c07d] hover:text-black">
                   View More
                 </Button>
