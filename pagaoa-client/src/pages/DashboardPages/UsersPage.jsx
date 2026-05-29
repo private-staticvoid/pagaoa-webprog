@@ -27,8 +27,6 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { DataGrid } from "@mui/x-data-grid";
 import { fetchUsers, createUser, updateUser } from "../../services/UserService";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const TYPES = ["admin", "editor", "viewer"];
 const GENDERS = ["male", "female", "other"];
 
@@ -49,13 +47,10 @@ const BLANK_FORM = {
 const labelize = (value) =>
   value ? `${value.charAt(0).toUpperCase()}${value.slice(1)}` : "";
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 const UsersPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  // ── Auth guard ──────────────────────────────────────────────────────────────
   const currentUser = (() => {
     try {
       return JSON.parse(localStorage.getItem("currentUser")) || null;
@@ -66,7 +61,6 @@ const UsersPage = () => {
 
   const isEditor = currentUser?.type === "editor";
 
-  // ── State ───────────────────────────────────────────────────────────────────
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState("");
@@ -87,16 +81,11 @@ const UsersPage = () => {
   const [filterGender, setFilterGender] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  // ── Data fetching ───────────────────────────────────────────────────────────
   const loadUsers = useCallback(async () => {
     setLoading(true);
     setApiError("");
-
     try {
-      console.log("Token:", localStorage.getItem("token"));
-
       const { data } = await fetchUsers();
-
       setUsers(
         data.users.map((u, i) => ({
           ...u,
@@ -104,8 +93,6 @@ const UsersPage = () => {
         })),
       );
     } catch (err) {
-      console.log("LOAD USERS ERROR:", err.response?.data);
-
       setApiError(
         err?.response?.data?.message ||
           "Failed to load users. Check your connection.",
@@ -119,7 +106,6 @@ const UsersPage = () => {
     loadUsers();
   }, [loadUsers]);
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
   const showToast = (message, severity = "success") =>
     setToast({ open: true, message, severity });
 
@@ -128,11 +114,28 @@ const UsersPage = () => {
     setErrors({});
   };
 
+  // FIX: when editing, populate all existing fields and leave password blank
+  // (API never returns the password — user only fills it in if they want to change it)
   const openModal = (user) => {
-    setModal({ open: true, id: user?._id ?? user?.id ?? null });
-    setForm(
-      user ? { ...BLANK_FORM, ...user, id: undefined } : { ...BLANK_FORM },
-    );
+    const userId = user?._id ?? user?.id ?? null;
+    setModal({ open: true, id: userId });
+    if (user) {
+      setForm({
+        firstName: user.firstName ?? "",
+        lastName: user.lastName ?? "",
+        age: String(user.age ?? ""),
+        gender: user.gender ?? "",
+        contactNumber: user.contactNumber ?? "",
+        email: user.email ?? "",
+        type: user.type ?? "editor",
+        username: user.username ?? "",
+        password: "", // intentionally blank — fill only to change
+        address: user.address ?? "",
+        isActive: user.isActive ?? true,
+      });
+    } else {
+      setForm({ ...BLANK_FORM });
+    }
     setErrors({});
   };
 
@@ -150,9 +153,10 @@ const UsersPage = () => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ── Validation ──────────────────────────────────────────────────────────────
+  // FIX: password is only required and validated on create, not on edit
   const validate = () => {
     const next = {};
+    const isEditing = Boolean(modal.id);
     const email = form.email.trim().toLowerCase();
     const username = form.username.trim();
 
@@ -166,8 +170,12 @@ const UsersPage = () => {
       ["type", "Role"],
       ["username", "Username"],
       ["address", "Address"],
-      ["password", "Password"],
     ];
+
+    // Password only required when creating a new user
+    if (!isEditing) {
+      required.push(["password", "Password"]);
+    }
 
     required.forEach(([key, label]) => {
       if (!String(form[key] ?? "").trim()) next[key] = `${label} is required.`;
@@ -177,8 +185,11 @@ const UsersPage = () => {
       next.email = "Enter a valid email address.";
     if (!next.username && /\s/.test(username))
       next.username = "Username must not contain spaces.";
-    if (!next.password && form.password.length < 8)
+
+    // Only validate password length if a value was entered
+    if (form.password && form.password.length < 8)
       next.password = "Password must be at least 8 characters.";
+
     if (!next.contactNumber && !/^\d{11}$/.test(form.contactNumber))
       next.contactNumber = "Contact number must be 11 digits.";
     if (!next.age && !/^\d+$/.test(form.age))
@@ -200,7 +211,6 @@ const UsersPage = () => {
     return next;
   };
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (event) => {
     event.preventDefault();
     const nextErrors = validate();
@@ -209,6 +219,7 @@ const UsersPage = () => {
       return;
     }
 
+    // FIX: only include password in payload if the user actually typed one
     const payload = {
       firstName: form.firstName.trim(),
       lastName: form.lastName.trim(),
@@ -218,9 +229,9 @@ const UsersPage = () => {
       email: form.email.trim().toLowerCase(),
       type: form.type.trim().toLowerCase(),
       username: form.username.trim().toLowerCase(),
-      password: form.password,
       address: form.address.trim(),
       isActive: form.isActive,
+      ...(form.password ? { password: form.password } : {}),
     };
 
     setSubmitting(true);
@@ -250,9 +261,8 @@ const UsersPage = () => {
     }
   };
 
-  // ── Toggle status ───────────────────────────────────────────────────────────
   const toggleStatus = async (user) => {
-    if (isEditor) return; // editors cannot toggle status
+    if (isEditor) return;
     const updated = { isActive: !user.isActive };
     try {
       await updateUser(user.id, updated);
@@ -265,7 +275,6 @@ const UsersPage = () => {
     }
   };
 
-  // ── Filtered rows ───────────────────────────────────────────────────────────
   const filteredUsers = users.filter((u) => {
     const q = search.toLowerCase();
     const matchesSearch =
@@ -284,7 +293,6 @@ const UsersPage = () => {
     return matchesSearch && matchesType && matchesGender && matchesStatus;
   });
 
-  // ── Field helper ────────────────────────────────────────────────────────────
   const fieldProps = (name, label, extra = {}) => ({
     name,
     label,
@@ -296,7 +304,6 @@ const UsersPage = () => {
     ...extra,
   });
 
-  // ── Columns ─────────────────────────────────────────────────────────────────
   const columns = [
     {
       field: "id",
@@ -371,9 +378,6 @@ const UsersPage = () => {
     },
   ];
 
-  // ── Render ──────────────────────────────────────────────────────────────────
-
-  // Editors are not allowed on this page
   if (isEditor) {
     return (
       <Box sx={{ p: 4 }}>
@@ -387,7 +391,6 @@ const UsersPage = () => {
 
   return (
     <Box sx={{ width: "100%", minWidth: 0 }}>
-      {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
       <Box
         sx={{
           mb: 3,
@@ -451,14 +454,12 @@ const UsersPage = () => {
         </Button>
       </Box>
 
-      {/* ── Errors / Loading ─────────────────────────────────────────────────── */}
       {apiError && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {apiError}
         </Alert>
       )}
 
-      {/* ── Table ───────────────────────────────────────────────────────────── */}
       <Paper sx={{ p: { xs: 1.5, sm: 2 }, minWidth: 0, overflow: "hidden" }}>
         {loading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
@@ -492,7 +493,6 @@ const UsersPage = () => {
         )}
       </Paper>
 
-      {/* ── Add / Edit Modal ─────────────────────────────────────────────────── */}
       <Dialog
         open={modal.open}
         onClose={closeModal}
@@ -532,7 +532,6 @@ const UsersPage = () => {
               </Stack>
 
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                {/* Role — admins can set any; editors can only set editor/viewer */}
                 <TextField {...fieldProps("type", "Role", { select: true })}>
                   {TYPES.filter((t) =>
                     currentUser?.type === "admin" ? true : t !== "admin",
@@ -546,27 +545,37 @@ const UsersPage = () => {
               </Stack>
 
               <TextField
-                {...fieldProps("password", "Password", {
-                  type: showPassword ? "text" : "password",
-                  slotProps: {
-                    input: {
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            edge="end"
-                            onClick={() => setShowPassword((p) => !p)}
-                            onMouseDown={(e) => e.preventDefault()}
-                            aria-label={
-                              showPassword ? "Hide password" : "Show password"
-                            }
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
+                {...fieldProps(
+                  "password",
+                  modal.id
+                    ? "New Password (leave blank to keep current)"
+                    : "Password",
+                  {
+                    type: showPassword ? "text" : "password",
+                    slotProps: {
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              edge="end"
+                              onClick={() => setShowPassword((p) => !p)}
+                              onMouseDown={(e) => e.preventDefault()}
+                              aria-label={
+                                showPassword ? "Hide password" : "Show password"
+                              }
+                            >
+                              {showPassword ? (
+                                <VisibilityOff />
+                              ) : (
+                                <Visibility />
+                              )}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      },
                     },
                   },
-                })}
+                )}
               />
 
               <TextField
@@ -613,7 +622,6 @@ const UsersPage = () => {
         </Box>
       </Dialog>
 
-      {/* ── Toast ───────────────────────────────────────────────────────────── */}
       <Snackbar
         open={toast.open}
         autoHideDuration={3500}
